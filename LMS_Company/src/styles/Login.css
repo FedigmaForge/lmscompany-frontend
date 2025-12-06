@@ -1,0 +1,69 @@
+/* Center login form */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f4f6f9;
+  font-family: Arial, sans-serif;
+}
+
+/* Login form box */
+.login-form {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  width: 320px;
+  text-align: center;
+}
+
+/* Heading */
+.login-form h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Input fields */
+.login-form input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.login-form input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0px 0px 4px rgba(79, 70, 229, 0.3);
+}
+
+/* Login button */
+.login-form button {
+  width: 100%;
+  padding: 10px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-form button:hover {
+  background: #3730a3;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-form {
+    width: 90%;
+    padding: 1.5rem;
+  }
+}

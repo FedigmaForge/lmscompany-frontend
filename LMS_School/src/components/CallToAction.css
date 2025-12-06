@@ -1,0 +1,83 @@
+/* --- Variables for easy color adjustments --- */
+:root {
+  --primary-pink: #f75d86; /* A vibrant pink for the secondary button and text */
+  --light-pink: #ffc4e1;  /* Used for the lighter side of the gradient */
+  --dark-pink: #e7336a;   /* Used for the darker side of the gradient */
+  --white: #ffffff;
+}
+
+/* --- Main Container and Gradient --- */
+.cta-container {
+  /* Creating the pink-to-reddish gradient */
+  background: linear-gradient(to right, var(--light-pink), var(--dark-pink), var(--primary-pink));
+  padding: 80px 20px; /* Vertical padding to give it height */
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
+  text-align: center; /* Center all inline content (text) */
+}
+
+/* --- Content Styling --- */
+.cta-content {
+  max-width: 800px; /* Constrain the width of the content */
+  width: 100%;
+}
+
+.cta-headline {
+  font-size: 2.5rem; /* Large font size for the main question */
+  font-weight: 700; /* Bold */
+  color: var(--white); /* White text color */
+  margin-bottom: 1rem;
+}
+
+.cta-text {
+  font-size: 1.15rem; /* Slightly larger text for the description */
+  color: var(--white); /* White text color */
+  line-height: 1.6;
+  margin-bottom: 2.5rem; /* Space before the buttons */
+  max-width: 650px; /* Constrain the width of the paragraph */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Buttons Layout and General Style --- */
+.cta-buttons {
+  display: flex;
+  gap: 20px; /* Space between the two buttons */
+  justify-content: center; /* Center the buttons group */
+}
+
+.cta-button {
+  padding: 14px 30px;
+  border: none;
+  border-radius: 8px; /* Slightly rounded corners */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+/* --- Primary Button (Sign Up Now) --- */
+.primary-button {
+  background-color: var(--white); /* White background */
+  color: var(--primary-pink); /* Pink text color */
+  /* Adds a subtle border that appears on hover */
+  border: 2px solid var(--white); 
+}
+
+.primary-button:hover {
+  background-color: transparent; /* Transparent background on hover */
+  color: var(--white); /* White text on hover */
+}
+
+/* --- Secondary Button (Contact Us) --- */
+.secondary-button {
+  background-color: var(--primary-pink); /* Pink background */
+  color: var(--white); /* White text color */
+  border: 2px solid var(--primary-pink);
+}
+
+.secondary-button:hover {
+  background-color: var(--dark-pink); /* Slightly darker pink on hover */
+  border-color: var(--dark-pink);
+}

@@ -1,0 +1,70 @@
+.ts-container {
+  padding: 20px;
+}
+
+.ts-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.ts-loading {
+  font-size: 18px;
+  color: #777;
+}
+
+.ts-noassign {
+  padding: 15px;
+  background: #ffe0e0;
+  color: #b10000;
+  border-radius: 8px;
+}
+
+.ts-info-box {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
+}
+
+.ts-card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.ts-card:hover {
+  transform: scale(1.02);
+}
+
+.ts-photo {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.ts-details h4 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.ts-no-students {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff4cc;
+  border-radius: 10px;
+}

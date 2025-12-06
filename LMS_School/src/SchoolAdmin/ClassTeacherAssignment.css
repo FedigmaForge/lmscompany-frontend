@@ -1,0 +1,155 @@
+/* ---------------- Container ---------------- */
+.assign-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+}
+
+/* ---------------- Title ---------------- */
+.assign-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ---------------- Form ---------------- */
+.assign-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* ---------------- Button ---------------- */
+.assign-btn {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+.assign-btn:hover {
+  background: #0056b3;
+}
+
+/* ---------------- Filters ---------------- */
+.assign-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.assign-filters input,
+.assign-filters select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.assign-filters input:focus,
+.assign-filters select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* ---------------- Table ---------------- */
+.assign-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.assign-table th,
+.assign-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.assign-table th {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+}
+
+.assign-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* ---------------- Table Buttons ---------------- */
+.assign-table button {
+  padding: 6px 10px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.assign-table button:first-child {
+  background: #ffc107;
+  color: #fff;
+}
+
+.assign-table button:first-child:hover {
+  background: #e0a800;
+}
+
+.assign-table button:last-child {
+  background: #dc3545;
+  color: #fff;
+}
+
+.assign-table button:last-child:hover {
+  background: #c82333;
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 768px) {
+  .assign-form {
+    flex-direction: column;
+  }
+
+  .assign-filters {
+    flex-direction: column;
+  }
+}

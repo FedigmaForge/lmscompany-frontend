@@ -1,0 +1,52 @@
+.manage-schools-container {
+  padding: 20px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.search-container input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.school-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.school-table th, .school-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.school-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.status-active {
+  color: green;
+  font-weight: 600;
+}
+
+.status-inactive {
+  color: red;
+  font-weight: 600;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+}

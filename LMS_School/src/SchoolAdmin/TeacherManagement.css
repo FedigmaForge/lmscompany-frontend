@@ -1,0 +1,101 @@
+.teacher-management {
+  padding: 30px;
+  background-color: #f9fafb;
+  font-family: "Poppins", sans-serif;
+}
+
+.teacher-management h2 {
+  color: #1e3a8a;
+  margin-bottom: 20px;
+}
+
+.teacher-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.teacher-form input {
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+}
+
+.teacher-form input:focus {
+  border-color: #2563eb;
+}
+
+.teacher-form button {
+  grid-column: 1 / -1;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.teacher-form button:hover {
+  background-color: #1e3a8a;
+}
+
+/* Table */
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.teacher-table th,
+.teacher-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: center;
+}
+
+.teacher-table th {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+.teacher-table tr:nth-child(even) {
+  background-color: #f3f4f6;
+}
+
+.edit-btn,
+.delete-btn {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 2px;
+}
+
+.edit-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+
+.profile-upload {
+  margin-top: 10px;
+}
+
+.preview-img,
+.profile-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-top: 5px;
+}

@@ -1,0 +1,249 @@
+/* PAGE WRAPPER */
+.attendance-page {
+  padding: 20px;
+  background: #f5f7fb;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .attendance-page {
+    padding: 10px;
+    max-width: 100%;
+  }
+}
+
+
+/* MAIN CARD */
+.attendance-card {
+  width: 100%;
+  max-width: 1200px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+/* HEADER */
+.attendance-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.controls-row {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* TOGGLE BUTTONS */
+.type-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-btn {
+  padding: 8px 14px;
+  background: #e3e8ef;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.toggle-btn.active {
+  background: #4a90e2;
+  color: #fff;
+}
+
+.toggle-btn:hover {
+  background: #d3d8df;
+}
+
+/* SEARCH */
+.search-left input {
+  padding: 9px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  width: 260px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.search-left input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74,144,226,0.2);
+}
+
+/* TABLE WRAPPER */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+/* TABLE STYLE */
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+}
+
+.modern-table thead {
+  background: #f0f3f7;
+}
+
+.modern-table th,
+.modern-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* PROFILE IMAGE */
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* NAME CELL */
+.name-line {
+  font-weight: 600;
+  color: #333;
+}
+
+.sub-line {
+  font-size: 12px;
+  color: #777;
+}
+
+/* INPUTS */
+.date-input,
+.status-select {
+  width: 100%;
+  padding: 8px 6px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: white;
+}
+
+.date-input:focus,
+.status-select:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+/* SAVE BUTTON */
+.save-btn {
+  padding: 8px 12px;
+  background: #4a90e2;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.save-btn:hover {
+  background: #347acb;
+}
+
+.save-btn:disabled {
+  background: #a3c4e4;
+  cursor: not-allowed;
+}
+
+/* SAVED NOTE */
+.saved-note {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #58a55c;
+}
+
+/* EMPTY STATE */
+.no-records {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
+
+/* ============================= */
+/* RESPONSIVE CSS */
+/* ============================= */
+
+/* TABLE → CARD VIEW ON MOBILE */
+@media (max-width: 768px) {
+  .attendance-card {
+    padding: 15px;
+  }
+
+  .controls-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-left input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .modern-table {
+    min-width: 100%;
+  }
+
+  .type-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+  }
+
+  /* Convert table to block layout for small screens */
+  .modern-table thead {
+    display: none;
+  }
+
+  .modern-table tr {
+    display: block;
+    margin-bottom: 15px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .modern-table td {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    padding: 8px 0;
+  }
+
+  .modern-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #333;
+    margin-right: 10px;
+  }
+}
