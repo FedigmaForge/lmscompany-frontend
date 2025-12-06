@@ -165,10 +165,7 @@ rows.forEach((row) => {
 // === TOTAL BOX ===
 doc.setFont("helvetica", "bold");
 doc.rect(10, startY, 190, 12);
-
-const totalAmount =
-  Number(payment.payingNow || 0) +
-  Number(master.totalFeeAmount || 0);
+const totalAmount = Number(payment.payingNow || 0);
 
 doc.text(
   `TOTAL: ${totalAmount.toFixed(2)}`,
