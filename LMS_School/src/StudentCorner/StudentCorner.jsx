@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./StudentCorner.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
 
 const StudentLogin = () => {
   const [admissionId, setAdmissionId] = useState("");

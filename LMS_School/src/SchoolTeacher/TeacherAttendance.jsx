@@ -32,7 +32,7 @@ export default function TeacherAttendance() {
   const fetchSummary = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:4000/api/attendance/summary/${schoolCode}/${personId}`
+        `http://15.207.54.139:4000/api/attendance/summary/${schoolCode}/${personId}`
       );
 
       if (res.data.success) {

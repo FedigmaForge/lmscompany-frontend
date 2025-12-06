@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./TeacherLogin.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
 
 const TeacherLogin = () => {
   const [email, setEmail] = useState("");
