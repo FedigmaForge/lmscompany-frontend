@@ -11,7 +11,7 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-const API_BASE = "http://15.207.54.139:4000";
+const API_BASE = "http://localhost:4000";
 const STATUS_LIST = ["Present", "Absent", "Leave", "Half-Day", "Holiday"];
 const COLORS = ["#4CAF50", "#F44336", "#FFC107", "#2196F3", "#9C27B0"];
 

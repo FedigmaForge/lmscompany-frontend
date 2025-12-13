@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./AttendanceManagement.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const FALLBACK_AVATAR =
   "data:image/svg+xml;utf8," +
@@ -20,7 +20,7 @@ const AttendanceManagement = ({ type: initialType = "teacher", lockType }) => {
   const [attendanceMap, setAttendanceMap] = useState({}); // { "<person_id>|<date>": record }
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("schoolToken");
   const schoolCode = localStorage.getItem("schoolCode");
   const role = localStorage.getItem("role"); // "teacher" or "admin"
 

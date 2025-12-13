@@ -52,12 +52,13 @@ exports.schoolLogin = async (req, res) => {
       message: "Login successful",
       token,
       school: {
-        id: school.id,
-        school_name: school.school_name,
-        school_code: school.school_code,
-        email: school.email,
-        account_type: school.account_type,
-        education_type: school.education_type,
+         id: school.id,
+  school_name: school.school_name,
+  school_code: school.school_code,
+  email: school.email,
+  account_type: school.account_type,
+  education_type: school.education_type,
+  school_logo: school.school_logo,   // ✅ ADD THIS
       },
     });
   } catch (err) {

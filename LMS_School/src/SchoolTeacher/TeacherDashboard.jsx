@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, Outlet } from "react-router-dom";
 
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function TeacherDashboard() {
   const [profile, setProfile] = useState(null);

@@ -5,9 +5,10 @@ import axios from "axios";
 import jsPDF from "jspdf";
 import "./FeeReceiptComponent.css";
 import logo from '../images/schoollogo.png'
+import Signature from '../images/signature.png'
 
 const API_BASE =
-  import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+  import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function FeeReceiptComponent() {
   const [profile, setProfile] = useState(null);
@@ -163,9 +164,14 @@ rows.forEach((row) => {
 });
 
 // === TOTAL BOX ===
+// === TOTAL BOX ===
 doc.setFont("helvetica", "bold");
 doc.rect(10, startY, 190, 12);
-const totalAmount = Number(payment.payingNow || 0);
+
+// Calculate total properly from rows
+const totalAmount = rows.reduce((sum, row) => {
+  return sum + Number(row[1] || 0);
+}, 0);
 
 doc.text(
   `TOTAL: ${totalAmount.toFixed(2)}`,
@@ -173,6 +179,7 @@ doc.text(
   startY + 8,
   { align: "right" }
 );
+
 
 startY += 25;
 
@@ -191,8 +198,11 @@ doc.text(`A/C No: 310511010000018`, 10, startY);
 
 startY += 6;
 doc.text(`IFSC Code: UBIN0831051`, 10, startY);
+// === SIGNATURE IMAGE WITH ROTATION ===
+doc.addImage(Signature, "PNG", 165, startY, 50, 20, undefined, "NONE", 30); // rotate 15 degrees
 
-doc.text("Recipient Signature", 195, startY + 20, { align: "right" });
+doc.text("Signature", 185, startY + 10, { align: "right" });
+
 
 // OPEN PDF
 const url = doc.output("bloburl");

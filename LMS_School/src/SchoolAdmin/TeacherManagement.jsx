@@ -3,7 +3,7 @@ import axios from "axios";
 import ImageCropper from "./ImageCropper";
 import "./TeacherManagement.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);
@@ -30,7 +30,7 @@ const TeacherManagement = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("schoolToken");
   const schoolCode = localStorage.getItem("schoolCode");
 
   useEffect(() => {
