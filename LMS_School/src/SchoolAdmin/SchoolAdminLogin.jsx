@@ -21,7 +21,7 @@ const SchoolAdminLogin = () => {
 
     try {
       // ✅ Make sure URL matches backend route
-      const response = await axios.post("http://localhost:4000/api/schools/login", {
+      const response = await axios.post("http://15.207.54.139:4000/api/schools/login", {
         email,
         password,
         school_code: schoolCode, // Must match backend

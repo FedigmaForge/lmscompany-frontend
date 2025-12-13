@@ -8,7 +8,7 @@ import logo from '../images/schoollogo.png'
 import Signature from '../images/signature.png'
 
 const API_BASE =
-  import.meta.env.VITE_API_URL || "http://localhost:4000";
+  import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
 
 export default function FeeReceiptComponent() {
   const [profile, setProfile] = useState(null);
