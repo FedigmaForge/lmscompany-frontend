@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./FeeManagement.css";
-const API_BASE = "http://15.207.54.139:4000";
+const API_BASE = "http://13.234.75.130:4000";
 const FeeManagement = () => {
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");

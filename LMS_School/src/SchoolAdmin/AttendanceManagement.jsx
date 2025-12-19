@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./AttendanceManagement.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
 
 const FALLBACK_AVATAR =
   "data:image/svg+xml;utf8," +

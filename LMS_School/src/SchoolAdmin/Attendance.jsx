@@ -10,7 +10,7 @@ const Attendance = () => {
     e.preventDefault();
     try {
       const schoolCode = localStorage.getItem("schoolCode");
-      await axios.post("http://localhost:4000/api/attendance", {
+      await axios.post("http://13.234.75.130:4000/api/attendance", {
         employeeId,
         status,
         schoolCode,

@@ -3,7 +3,7 @@ import axios from "axios";
 import ImageCropper from "./ImageCropper";
 import "./TeacherManagement.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
 
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);

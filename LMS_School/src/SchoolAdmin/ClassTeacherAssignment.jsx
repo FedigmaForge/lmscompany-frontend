@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./ClassTeacherAssignment.css";
 
-const API_BASE = "http://15.207.54.139:4000";
+const API_BASE = "http://13.234.75.130:4000";
 
 const ClassTeacherAssignment = () => {
   const [standard, setStandard] = useState("");

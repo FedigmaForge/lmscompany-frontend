@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./TeacherStudents.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://15.207.54.139:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
 
 export default function TeacherStudents() {
   const [students, setStudents] = useState([]);
