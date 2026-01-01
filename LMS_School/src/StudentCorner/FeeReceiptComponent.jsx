@@ -8,15 +8,39 @@ import logo from '../images/schoollogo.png'
 import Signature from '../images/signature.png'
 
 const API_BASE =
-  import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
+  import.meta.env.VITE_API_URL || "http://localhost:4000";
+  const FEE_HEADS = [
+  "Tuition Fee",
+  "Transport",
+  "Generator/Electricity",
+  "Books & Stationary",
+  "Examination Fee",
+  "Library Fee",
+  "Computer Lab Fee",
+  "Games & Sports Fee",
+  "Miscellaneous Charge",
+  "Fine",
+  "Others",
+];
 
 export default function FeeReceiptComponent() {
   const [profile, setProfile] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+   // -----------------------------
+  // Parse remarks safely
+  // -----------------------------
+  const parseRemarks = (remarks) => {
+    try {
+      return remarks ? JSON.parse(remarks) : {};
+    } catch {
+      return {};
+    }
+  };
  
-  // 1️⃣ Fetch Student Profile
+  // 1 Fetch Student Profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -38,7 +62,7 @@ export default function FeeReceiptComponent() {
     fetchProfile();
   }, []);
 
-  // 2️⃣ Fetch Fee Receipt after profile loads
+  //  Fetch Fee Receipt after profile loads
   useEffect(() => {
     if (!profile) return;
 
@@ -62,153 +86,141 @@ export default function FeeReceiptComponent() {
     fetchReceipt();
   }, [profile]);
 
-  // 3️⃣ Generate PDF with full boxes
-  const downloadPDF = (payment, master, download = false) => {
-    const doc = new jsPDF("p", "mm", "a4");
+  // 3 Generate PDF with full boxes
+ const downloadPDF = (payment, master) => {
+  const doc = new jsPDF("p", "mm", "a4");
 
-    // OUTER BORDER
-doc.rect(5, 5, 200, 287);
+  // Parse fee breakup safely
+  let feeData = {};
+  try {
+    feeData = payment.remarks ? JSON.parse(payment.remarks) : {};
+  } catch {
+    feeData = {};
+  }
 
-// === HEADER ===
-// LOGO
-doc.addImage(logo, "PNG", 10, 8, 25, 25);
+  // OUTER BORDER
+  doc.rect(5, 5, 200, 287);
 
-// SCHOOL NAME
-doc.setFont("helvetica", "bold");
-doc.setFontSize(20);
-doc.text("DOON INTERNATIONAL SCHOOL", 105, 18, { align: "center" });
+  // LOGO
+  doc.addImage(logo, "PNG", 10, 8, 25, 25);
 
-// ADDRESS
-doc.setFont("helvetica", "normal");
-doc.setFontSize(10);
-doc.text(
-  "ALINAGAR (NEAR THANA), DARBHANGA - 847405",
-  105,
-  25,
-  { align: "center" }
-);
+  // SCHOOL NAME
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("DOON INTERNATIONAL SCHOOL", 105, 18, { align: "center" });
 
-// Horizontal Divider
-doc.line(10, 38, 200, 38);
-
-// === SCHOOL DETAILS BOX ===
-doc.rect(10, 38, 190, 12);
-
-doc.setFontSize(10);
-doc.text(`SchoolCode: ${master.schoolCode || "---"}`, 15, 46);
-
-const formattedDate = new Date(payment.createdAt).toLocaleString();
-doc.text(`Date: ${formattedDate}`, 160, 46, { align: "right" });
-
-// === FEE RECEIPT TITLE ===
-doc.setFont("helvetica", "bold");
-doc.setFontSize(14);
-doc.text("FEE RECEIPT", 105, 60, { align: "center" });
-
-// === STUDENT DETAILS BOX ===
-doc.rect(10, 65, 190, 30);
-doc.setFont("helvetica", "normal");
-doc.setFontSize(11);
-
-doc.text(`S.No: ${payment.paymentId}`, 15, 75);
-doc.text(`Name: ${profile.fullname}`, 15, 83);
-doc.text(`Class: ${profile.standard || "N/A"}`, 15, 91);
-
-doc.text(`Roll No: ${profile.rollNo || "—"}`, 160, 75, { align: "right" });
-doc.text(`Sec: ${profile.section || "—"}`, 160, 83, { align: "right" });
-doc.text(`Admission ID: ${profile.admissionId}`, 160, 91, { align: "right" });
-
-// === TABLE HEADER ===
-let y = 105;
-doc.setFont("helvetica", "bold");
-doc.rect(10, y, 190, 10);
-doc.text("Particulars", 15, y + 7);
-doc.text("Amount", 195, y + 7, { align: "right" });
-const rows = [
-  ["Tuition Fee", payment.remarks === "Tuition Fee" ? payment.payingNow : ""],
-  ["School Fee", payment.remarks === "School Fee" ? payment.payingNow : ""],
-  ["Transport", payment.remarks === "Transport" ? payment.payingNow : ""],
-  ["Generator/Electricity", payment.remarks === "Generator/Electricity" ? payment.payingNow : ""],
-  ["Books & Stationary", payment.remarks === "Books & Stationary" ? payment.payingNow : ""],
-  ["Examination Fee", payment.remarks === "Examination Fee" ? payment.payingNow : ""],
-  ["Library Fee", payment.remarks === "Library Fee" ? payment.payingNow : ""],
-  ["Computer Lab Fee", payment.remarks === "Computer Lab Fee" ? payment.payingNow : ""],
-  ["Games & Sports Fee", payment.remarks === "Games & Sports Fee" ? payment.payingNow : ""],
-  ["Miscellaneous Charges", payment.remarks === "Miscellaneous Charges" ? payment.payingNow : ""],
-  ["Fine", payment.remarks === "Fine" ? payment.payingNow : ""],
-  ["Others", payment.remarks === "Others" ? payment.payingNow : ""],
-];
-
-
-
-
-let rowHeight = 10;
-let startY = y + 10;
-
-doc.setFont("helvetica", "normal");
-
-rows.forEach((row) => {
-  doc.rect(10, startY, 190, rowHeight);
-  doc.line(150, startY, 150, startY + rowHeight);
-
-  doc.text(row[0], 15, startY + 7);
-
+  // ADDRESS
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.text(
-    row[1] ? `${Number(row[1]).toFixed(2)}` : "",
+    "ALINAGAR (NEAR THANA), DARBHANGA - 847405",
+    105,
+    25,
+    { align: "center" }
+  );
+
+  doc.line(10, 38, 200, 38);
+
+  // SCHOOL DETAILS
+  doc.rect(10, 38, 190, 12);
+  doc.text(`SchoolCode: ${master.schoolCode || "---"}`, 15, 46);
+  doc.text(
+    `Date: ${new Date(payment.createdAt).toLocaleDateString()}`,
     195,
-    startY + 7,
+    46,
     { align: "right" }
   );
 
-  startY += rowHeight;
-});
+  // TITLE
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("FEE RECEIPT", 105, 60, { align: "center" });
 
-// === TOTAL BOX ===
-// === TOTAL BOX ===
-doc.setFont("helvetica", "bold");
-doc.rect(10, startY, 190, 12);
+  // STUDENT DETAILS
+  doc.rect(10, 65, 190, 30);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
 
-// Calculate total properly from rows
-const totalAmount = rows.reduce((sum, row) => {
-  return sum + Number(row[1] || 0);
-}, 0);
+  doc.text(`S.No: ${payment.paymentId}`, 15, 75);
+  doc.text(`Name: ${profile.fullname}`, 15, 83);
+  doc.text(`Class: ${profile.standard || "N/A"}`, 15, 91);
 
-doc.text(
-  `TOTAL: ${totalAmount.toFixed(2)}`,
-  195,
-  startY + 8,
-  { align: "right" }
-);
+  doc.text(`Roll No: ${profile.rollNo || "-"}`, 195, 75, { align: "right" });
+  doc.text(`Sec: ${profile.section || "-"}`, 195, 83, { align: "right" });
+  doc.text(`Admission ID: ${profile.admissionId}`, 195, 91, { align: "right" });
 
+  // TABLE HEADER
+  let y = 105;
+  doc.setFont("helvetica", "bold");
+  doc.rect(10, y, 190, 10);
+  doc.text("Particulars", 15, y + 7);
+  doc.text("Amount", 195, y + 7, { align: "right" });
 
-startY += 25;
+  // TABLE ROWS (same as printed receipt)
+  const FEE_HEADS = [
+    "Tuition Fee",
+    "Transport",
+    "Generator/Electricity",
+    "Books & Stationary",
+    "Examination Fee",
+    "Library Fee",
+    "Computer Lab Fee",
+    "Games & Sports Fee",
+    "Miscellaneous Charge",
+    "Fine",
+    "Others",
+  ];
 
-// === FOOTER ===
-doc.setFont("helvetica", "normal");
-doc.setFontSize(9);
+  let startY = y + 10;
+  let total = 0;
 
-doc.text(
-  "Note: Tuition fee and other charges are accepted from 1st to 10th of each month.",
-  10,
-  startY
-);
+  doc.setFont("helvetica", "normal");
 
-startY += 10;
-doc.text(`A/C No: 310511010000018`, 10, startY);
+  FEE_HEADS.forEach((head) => {
+    const amount = Number(feeData[head]?.amount || 0);
+  const note = feeData[head]?.note || "";
+    doc.rect(10, startY, 190, 10);
+    doc.line(150, startY, 150, startY + 10);
+    doc.text(head, 15, startY + 7);
+    doc.text(note, 115, startY + 7); 
+    if (amount > 0) {
+      doc.text(amount.toFixed(2), 195, startY + 7, { align: "right" });
+      total += amount;
+    }
+    startY += 10;
+  });
 
-startY += 6;
-doc.text(`IFSC Code: UBIN0831051`, 10, startY);
-// === SIGNATURE IMAGE WITH ROTATION ===
-doc.addImage(Signature, "PNG", 165, startY, 50, 20, undefined, "NONE", 30); // rotate 15 degrees
+  // TOTAL
+  doc.setFont("helvetica", "bold");
+  doc.rect(10, startY, 190, 12);
+  doc.text(`TOTAL: ${total.toFixed(2)}`, 195, startY + 8, {
+    align: "right",
+  });
 
-doc.text("Signature", 185, startY + 10, { align: "right" });
+  // FOOTER
+  startY += 25;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
 
+  doc.text(
+    "Note: Tuition fee and other charges are accepted from 1st to 10th of each month.",
+    10,
+    startY
+  );
 
-// OPEN PDF
-const url = doc.output("bloburl");
-window.open(url, "_blank");
+  startY += 10;
+  doc.text("A/C No: 310511010000018", 10, startY);
+  startY += 6;
+  doc.text("IFSC Code: UBIN0831051", 10, startY);
 
-  };
+  doc.addImage(Signature, "PNG", 165, startY, 50, 20, undefined, "NONE", 30); // rotate 15 degrees
+  doc.text("Recipient Signature", 195, startY + 10, {
+    align: "right",
+  });
+
+  window.open(doc.output("bloburl"), "_blank");
+};
+
 
   // UI States
   if (loading)
@@ -249,34 +261,41 @@ window.open(url, "_blank");
             </tr>
           </thead>
 
-          <tbody>
-            {receipt.payments.map((p) => (
-              <tr key={p.paymentId}>
-                <td>{p.paymentId}</td>
-                <td>₹{p.payingNow}</td>
-                <td>{p.createdAt}</td>
-                <td>{p.dueDate}</td>
-                <td>{p.remarks || "—"}</td>
-
-                <td>
-                  <button
-                    className="view-btn"
-                    onClick={() => downloadPDF(p, receipt.feeMaster)}
-                  >
-                    View
-                  </button>
-
-                  <button
-                    className="download-btn"
-                    onClick={() =>
-                      downloadPDF(p, receipt.feeMaster, true)
-                    }
-                  >
-                    PDF
-                  </button>
-                </td>
-              </tr>
-            ))}
+         <tbody>
+            {receipt.payments.map((p) => {
+              const breakup = parseRemarks(p.remarks);
+              return (
+                <tr key={p.paymentId}>
+                  <td>{p.paymentId}</td>
+                  <td>₹{p.payingNow}</td>
+                  <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td>{new Date(p.dueDate).toLocaleDateString()}</td>
+                  <td>
+                    {Object.keys(breakup).length ? (
+                      <ul className="fee-breakup-list">
+                        {Object.entries(breakup).map(([k, v]) => (
+                          <li key={k}>
+                            {k}: ₹{v.amount}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className="view-btn"
+                      onClick={() =>
+                        downloadPDF(p, receipt.feeMaster)
+                      }
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

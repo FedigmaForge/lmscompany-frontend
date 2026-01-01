@@ -339,3 +339,207 @@
   }
 }
 
+
+
+/* ===============================
+   MODAL OVERLAY
+================================ */
+.fee-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* ===============================
+   MODAL CONTENT (CENTERED CARD)
+================================ */
+.fee-modal-content {
+  background: #ffffff;
+  width: 92%;
+  max-width: 900px;
+  max-height: 90vh;              /* 🔥 prevents full screen */
+  overflow-y: auto;              /* scroll inside modal */
+  padding: 20px 22px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* ===============================
+   STUDENT INFO HEADER
+================================ */
+.student-info-box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #333;
+  background: #f9f9f9;
+  font-size: 14px;
+}
+
+.student-info-box strong {
+  font-weight: 600;
+}
+
+/* ===============================
+   FEE SUMMARY BAR
+================================ */
+.fee-summary-box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #333;
+  border-top: none;
+  margin-bottom: 12px;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+.fee-summary-box div {
+  font-weight: 500;
+}
+
+/* ===============================
+   HEADING
+================================ */
+.fee-modal-content h3 {
+  text-align: center;
+  margin: 10px 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+/* ===============================
+   RECEIPT TABLE
+================================ */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.receipt-table th,
+.receipt-table td {
+  border: 1px solid #333;
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+.receipt-table th {
+  background: #f1f1f1;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.receipt-table input[type="checkbox"] {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.receipt-table input[type="text"],
+.receipt-table input[type="number"] {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 13px;
+  border: 1px solid #999;
+}
+
+.receipt-table input:disabled {
+  background: #eeeeee;
+  cursor: not-allowed;
+}
+
+/* TOTAL ROW */
+.receipt-table tfoot td {
+  background: #fafafa;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ===============================
+   DUE DATE ROW
+================================ */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.form-row label {
+  min-width: 80px;
+  font-weight: 600;
+}
+
+.form-row input {
+  padding: 6px 8px;
+  border: 1px solid #999;
+}
+
+/* ===============================
+   ACTION BUTTONS
+================================ */
+.fee-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.fee-modal-buttons button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.fee-modal-buttons button:first-child {
+  background: #2e7d32;
+  color: #ffffff;
+}
+
+.fee-modal-buttons button:last-child {
+  background: #b71c1c;
+  color: #ffffff;
+}
+
+/* ===============================
+   MOBILE RESPONSIVE
+================================ */
+@media (max-width: 768px) {
+  .student-info-box,
+  .fee-summary-box {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .fee-modal-content {
+    padding: 15px;
+    max-height: 95vh;
+  }
+
+  .receipt-table th,
+  .receipt-table td {
+    font-size: 12px;
+  }
+}
+.dues-btn {
+  background: #f57c00;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  margin-left: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}

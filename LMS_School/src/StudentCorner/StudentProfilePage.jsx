@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./StudentProfile.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState(null);

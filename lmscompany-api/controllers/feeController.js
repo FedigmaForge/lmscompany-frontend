@@ -168,49 +168,95 @@ exports.addPayment = async (req, res) => {
       schoolCode,
       payingNow,
       dueDate,
-      remarks
+      feeBreakup // 🔥 FIXED
     } = req.body;
 
-    if (!admissionId || !studentId || !schoolCode || !payingNow || !dueDate) {
-      console.log("❌ Missing payment fields");
-      return res.status(400).json({ error: "Missing required fields" });
+    // ===============================
+    // VALIDATION
+    // ===============================
+    if (
+      !admissionId ||
+      !studentId ||
+      !schoolCode ||
+      payingNow === undefined ||
+      !dueDate
+    ) {
+      console.log("❌ Missing payment fields:", req.body);
+      return res.status(400).json({
+        error: "Missing required fields"
+      });
     }
 
-    console.log("➡ Checking master for payment...");
+    console.group("💰 ADD PAYMENT API");
+    console.log("Admission ID:", admissionId);
+    console.log("Student ID:", studentId);
+    console.log("School Code:", schoolCode);
+    console.log("Paying Now:", payingNow);
+    console.log("Due Date:", dueDate);
+    console.log("Fee Breakup:", feeBreakup);
+    console.groupEnd();
 
+    // ===============================
+    // FETCH MASTER
+    // ===============================
     const [master] = await db.query(
       `SELECT feeMasterId FROM fee_master 
        WHERE admissionId=? AND schoolCode=?`,
       [admissionId, schoolCode]
     );
 
-    console.log("📌 Master:", master);
+    console.log("📌 Fee Master Result:", master);
 
     if (master.length === 0) {
-      console.log("❗ Master not found → cannot add payment");
       return res.status(400).json({
         error: "Fee master not found. Create master first."
       });
     }
 
     const feeMasterId = master[0].feeMasterId;
-    console.log("➡ Adding payment for feeMasterId:", feeMasterId);
 
+    // ===============================
+    // INSERT PAYMENT
+    // ===============================
     await db.query(
       `INSERT INTO fee_payments 
-      (feeMasterId, admissionId, studentId, payingNow, paymentDate, dueDate, schoolCode, remarks) 
+      (
+        feeMasterId,
+        admissionId,
+        studentId,
+        payingNow,
+        paymentDate,
+        dueDate,
+        schoolCode,
+        remarks
+      )
       VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?)`,
-      [feeMasterId, admissionId, studentId, payingNow, dueDate, schoolCode, remarks || null]
+      [
+        feeMasterId,
+        admissionId,
+        studentId,
+        payingNow,
+        dueDate,
+        schoolCode,
+        JSON.stringify(feeBreakup) // 🔥 STORE RECEIPT
+      ]
     );
 
     console.log("🎉 Payment inserted successfully");
 
-    return res.json({ success: true, message: "Payment added successfully" });
+    return res.json({
+      success: true,
+      message: "Payment added successfully"
+    });
+
   } catch (err) {
     console.error("❌ ADD PAYMENT ERROR:", err);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(500).json({
+      error: "Server Error"
+    });
   }
 };
+
 
 
 

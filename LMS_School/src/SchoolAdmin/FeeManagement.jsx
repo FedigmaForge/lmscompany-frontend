@@ -1,345 +1,373 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./FeeManagement.css";
-const API_BASE = "http://13.234.75.130:4000";
+import { useNavigate } from "react-router-dom";
+
+
+const FEE_HEADS = [
+  "Tuition Fee",
+  "Transport",
+  "Generator/Electricity",
+  "Books & Stationary",
+  "Examination Fee",
+  "Library Fee",
+  "Computer Lab Fee",
+  "Games & Sports Fee",
+  "Miscellaneous Charge",
+  "Fine",
+  "Others",
+];
+
 const FeeManagement = () => {
+  const schoolCode = localStorage.getItem("schoolCode");
+ const navigate = useNavigate();
   const [students, setStudents] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [isLocked, setIsLocked] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
   const [selected, setSelected] = useState(null);
-  const [totalFee, setTotalFee] = useState(0);
-  const [paidFee, setPaidFee] = useState(0);
-  const [payNow, setPayNow] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [payingDate] = useState(new Date().toISOString().split("T")[0]);
-  const [feeHistory, setFeeHistory] = useState([]);
-  const [remarks, setRemarks] = useState("");
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const schoolCode = localStorage.getItem("schoolCode");
-  // -----------------------------------------
+
+  const [totalFee, setTotalFee] = useState(0);
+  const [paidFee, setPaidFee] = useState(0);
+  const [dueDate, setDueDate] = useState("");
+  const [payingDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const [fees, setFees] = useState({});
+  const [feeHistory, setFeeHistory] = useState([]);
+
+  // -----------------------------------
   // FETCH STUDENTS
-  // -----------------------------------------
+  // -----------------------------------
   const fetchStudents = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE}/api/students?school_code=${schoolCode}`
+        `${API_URL}/api/students?school_code=${schoolCode}`
       );
       const list = Array.isArray(res.data.data) ? res.data.data : [];
       setStudents(list);
       setResults(list);
     } catch (err) {
-      console.error("Fetch Students Error:", err);
-      setStudents([]);
-      setResults([]);
+      console.error(err);
     }
   };
+
   useEffect(() => {
     fetchStudents();
   }, []);
-  // -----------------------------------------
-  // SEARCH STUDENTS
-  // -----------------------------------------
+
+  // -----------------------------------
+  // SEARCH
+  // -----------------------------------
   const searchNow = async () => {
-    if (!searchQuery.trim()) return setResults(students);
+    if (!searchQuery.trim()) {
+      setResults(students);
+      return;
+    }
 
     try {
       const res = await axios.get(
-        `${API_BASE}/api/students/search?query=${searchQuery}&schoolCode=${schoolCode}`
+        `${API_URL}/api/students/search?query=${searchQuery}&schoolCode=${schoolCode}`
       );
-
-      setResults(Array.isArray(res.data.data) ? res.data.data : []);
+      setResults(res.data.data || []);
     } catch (err) {
-      console.error("Search Error:", err);
+      console.error(err);
       setResults([]);
     }
   };
 
-  // -----------------------------------------
-  // OPEN ADD FEE FORM
-  // -----------------------------------------
+  // -----------------------------------
+  // OPEN ADD FEE
+  // -----------------------------------
   const openFeeModal = async (stu) => {
     setSelected(stu);
-    setPayNow("");
+    setFees({});
 
     try {
-      console.log("Fetching summary for:", stu.admissionId);
-
       const res = await axios.get(
-        `${API_BASE}/api/fee/summary/${stu.admissionId}/${schoolCode}`
+        `${API_URL}/api/fee/summary/${stu.admissionId}/${schoolCode}`
       );
 
       const summary = res.data.summary || {};
-
-      // Set Total Fee & Paid Fee
       setTotalFee(summary.totalFeeAmount ?? 0);
       setPaidFee(summary.totalPaid ?? 0);
 
-      // ---------------------------------------
-      // SET DUE DATE (FROM DATABASE)
-      // ---------------------------------------
       if (summary.lastDueDate) {
-        console.log("📌 Last Due Date Found:", summary.lastDueDate);
-
-        // Convert date to yyyy-mm-dd format
-        const formatted = new Date(summary.lastDueDate)
-          .toISOString()
-          .split("T")[0];
-
-        setDueDate(formatted);
+        setDueDate(
+          new Date(summary.lastDueDate).toISOString().split("T")[0]
+        );
       } else {
-        console.log("⚠ No previous due date");
-        setDueDate(""); // keep empty
+        setDueDate("");
       }
-
     } catch (err) {
-      console.error("Summary Error:", err);
-      setTotalFee(0);
-      setPaidFee(0);
-      setDueDate("");
+      console.error(err);
     }
 
     setShowFeeModal(true);
   };
+    // -----------------------------------
+  //outstanding-dues
+  // -----------------------------------
+  const openOutstandingModal = (student) => {
+  navigate("/school-dashboard/outstanding-dues", {
+    state: { student },
+  });
+};
 
-
-  // -----------------------------------------
-  // LOAD HISTORY
-  // -----------------------------------------
+  // -----------------------------------
+  // OPEN HISTORY
+  // -----------------------------------
   const openHistoryModal = async (stu) => {
     setSelected(stu);
-
     try {
       const res = await axios.get(
-        `${API_BASE}/api/fee/history/${stu.admissionId}/${schoolCode}`
+        `${API_URL}/api/fee/history/${stu.admissionId}/${schoolCode}`
       );
-
       setFeeHistory(res.data.payments || []);
     } catch (err) {
-      console.error("History Error:", err);
+      console.error(err);
       setFeeHistory([]);
     }
-
     setShowHistoryModal(true);
   };
 
-  // -----------------------------------------
-  // SUBMIT PAYMENT
-  // -----------------------------------------
-  const submitFee = async () => {
-    if (!totalFee || payNow === "" || !dueDate) {
-      alert("All fields are required");
-      return;
-    }
-
-    const total = Number(totalFee);
-    const paid = Number(paidFee);
-    const now = Number(payNow);
-
-    const remaining = total - (paid + now);
-
-    if (remaining < 0) {
-      alert("Paying exceeds remaining amount");
-      return;
-    }
-
-    try {
-      // Step 1 → ensure fee master exists
-      await axios.post(`${API_BASE}/api/fee/master/create`, {
-        admissionId: selected.admissionId,
-        studentId: selected.id,
-        totalFeeAmount: total,
-        schoolCode,
-        remarks,  // ✅ ADD HERE
-      });
-
-      // Step 2 → add payment
-      const res = await axios.post(`${API_BASE}/api/fee/pay`, {
-        admissionId: selected.admissionId,
-        studentId: selected.id,
-        schoolCode,
-        payingNow: now,
-        dueDate,
-        remarks,  // ✅ ALSO INCLUDED HERE
-      });
-
-      if (res.data.success) {
-        alert("Fee payment added successfully");
-        setShowFeeModal(false);
-        fetchStudents(); // refresh list
-      }
-    } catch (err) {
-      console.error("Submit Fee Error:", err);
-      alert("Failed to submit fee");
-    }
+  // -----------------------------------
+  // FEE BREAKUP HANDLERS
+  // -----------------------------------
+  const toggleFee = (head) => {
+    setFees((prev) => {
+      const updated = { ...prev };
+      if (updated[head]) delete updated[head];
+      else updated[head] = { amount: "", note: "" };
+      return updated;
+    });
   };
 
+  const updateFee = (head, field, value) => {
+    setFees((prev) => ({
+      ...prev,
+      [head]: {
+        ...prev[head],
+        [field]: value,
+      },
+    }));
+  };
 
-  // -----------------------------------------
+  const totalPayingNow = Object.values(fees).reduce(
+    (sum, f) => sum + Number(f.amount || 0),
+    0
+  );
+
+  // -----------------------------------
+  // SUBMIT PAYMENT
+  // -----------------------------------
+const submitFee = async () => {
+  const requestPayload = {
+    admissionId: selected.admissionId,
+    studentId: selected.id,
+    schoolCode,
+    payingNow: totalPayingNow,
+    dueDate,
+    feeBreakup: fees, // receipt style
+  };
+
+  // ===============================
+  // 🔍 BEFORE API CALL (DEVTOOLS)
+  // ===============================
+  console.group("💰 FEE PAYMENT SUBMIT");
+  console.log("👨‍🎓 Student Selected:", selected);
+  console.log("🏫 School Code:", schoolCode);
+  console.log("📄 Admission ID:", selected.admissionId);
+  console.log("🧾 Student ID:", selected.id);
+  console.log("💵 Total Paying Now:", totalPayingNow);
+  console.log("📆 Due Date:", dueDate);
+  console.log("🧮 Fee Breakup Object:", fees);
+  console.log("📦 Final Payload:", requestPayload);
+  console.groupEnd();
+
+  try {
+    const res = await axios.post(
+      `${API_URL}/api/fee/pay`,
+      requestPayload
+    );
+
+    // ===============================
+    //  AFTER SUCCESS
+    // ===============================
+    console.group(" FEE PAYMENT SUCCESS");
+    console.log(" API Response:", res.data);
+    console.groupEnd();
+
+    alert("Fee payment added successfully");
+    setShowFeeModal(false);
+    fetchStudents();
+
+  } catch (err) {
+    // ===============================
+    // ERROR HANDLING
+    // ===============================
+    console.group("❌ FEE PAYMENT FAILED");
+    console.error("Error Message:", err.message);
+    console.error("Error Response:", err.response?.data);
+    console.error("Error Status:", err.response?.status);
+    console.groupEnd();
+
+    alert("Fee payment failed");
+  }
+};
+
+
+  // -----------------------------------
   // UI
-  // -----------------------------------------
+  // -----------------------------------
   return (
     <section className="fee-container">
       <h2>Fee Management</h2>
 
-      {/* SEARCH BOX */}
       <div className="fee-search-box">
         <input
-          type="text"
-          placeholder="Search by Name / Phone / Admission ID"
+          placeholder="Search by Name / Admission ID / Phone"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <button onClick={searchNow}>Search</button>
       </div>
 
-      {/* STUDENT TABLE */}
-      <div className="students-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Photo</th>
-              <th>Name</th>
-              <th>Admission ID</th>
-              <th>Contact</th>
-              <th>Email</th>
-              <th>Add Fee</th>
-              <th>History</th>
+      <table className="students-table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Admission ID</th>
+            <th>Contact</th>
+            <th>Add Fee</th>
+            <th>Pending Fees</th>
+            <th>History</th>
+          </tr>
+        </thead>
+        <tbody>
+          {results.map((s) => (
+            <tr key={s.id}>
+              <td>
+                <img
+                  src={s.photo ? `${API_URL}${s.photo}` : "/user.png"}
+                  className="student-photo"
+                />
+              </td>
+              <td>{s.fullname}</td>
+              <td>{s.admissionId}</td>
+              <td>{s.contactNumber}</td>
+              <td>
+                <button onClick={() => openFeeModal(s)}>Add Fee</button>
+              </td>
+              <td>
+               
+                <button
+                  className="dues-btn"
+                  onClick={() => openOutstandingModal(s)}
+                >
+                  Outstanding Dues
+                </button>
+              </td>
+              <td>
+                <button onClick={() => openHistoryModal(s)}>View</button>
+              </td>
             </tr>
-          </thead>
+          ))}
+        </tbody>
+      </table>
 
-          <tbody>
-            {results.map((s) => (
-              <tr key={s.id}>
-                <td>
-                  <img
-                    src={`${API_BASE}${s.photo}`}
-                    className="student-photo"
-                    alt=""
-                  />
-                </td>
-                <td>{s.fullname}</td>
-                <td>{s.admissionId}</td>
-                <td>{s.contactNumber}</td>
-                <td>{s.email}</td>
-
-                <td>
-                  <button onClick={() => openFeeModal(s)}>Add Fee</button>
-                </td>
-
-                <td>
-                  <button onClick={() => openHistoryModal(s)}>View</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
       {/* ADD FEE MODAL */}
       {showFeeModal && selected && (
         <div className="fee-modal">
           <div className="fee-modal-content">
-            <h3>Add Fee – {selected.fullname}</h3>
-            <div className="fee-student-info">
-              <img
-                src={`${API_BASE}${selected.photo}`}
-                className="student-photo-large"
-              />
+            {/* STUDENT DETAILS */}
+            <div className="student-info-box">
               <div>
-                <p><strong>Name:</strong> {selected.fullname}</p>
-                <p><strong>Admission ID:</strong> {selected.admissionId}</p>
-                <p><strong>Phone:</strong> {selected.contactNumber}</p>
-                <p><strong>Email:</strong> {selected.email}</p>
+                <strong>Name:</strong> {selected.fullname}
+              </div>
+              <div>
+                <strong>Admission ID:</strong> {selected.admissionId}
+              </div>
+              <div>
+                <strong>Contact:</strong> {selected.contactNumber}
               </div>
             </div>
-            {/* ---------------------- FORM ---------------------- */}
-            <div className="fee-form-grid">
 
-              <div className="form-group">
-                <label>Total Fee</label>
-                <input
-                  type="number"
-                  value={totalFee}
-                  onChange={(e) => setTotalFee(e.target.value)}
-                  onBlur={() => {
-                    if (totalFee && totalFee.length > 0) setIsLocked(true);
-                  }}
-                  disabled={isLocked}
-                />
-
+            {/* FEE SUMMARY */}
+            <div className="fee-summary-box">
+              <div>
+                <strong>Total Fee:</strong> ₹ {totalFee}
               </div>
-
-              <div className="form-group">
-                <label>Paid Fee</label>
-                <input type="number" value={paidFee} readOnly />
+              <div>
+                <strong>Paid:</strong> ₹ {paidFee}
               </div>
-
-              <div className="form-group">
-                <label>Paying Now</label>
-                <input
-                  type="number"
-                  placeholder="Paying Now"
-                  value={payNow}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    const remaining = totalFee - paidFee;
-                    if (val > remaining) {
-                      alert(`Max payable is ₹${remaining}`);
-                      return;
-                    }
-                    setPayNow(val);
-                  }}
-                />
+              <div>
+                <strong>Pending:</strong> ₹ {totalFee - paidFee}
               </div>
-
-
-              <div className="form-group">
-                <label>Pending Amount</label>
-                <input
-                  type="number"
-                  value={Math.max(totalFee - paidFee - payNow, 0)}
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Paying Date</label>
-                <input type="date" value={payingDate} readOnly />
-              </div>
-
-              <div className="form-group">
-                <label>Due Date</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Remarks</label>
-                <select
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                >
-                  <option value="">Select Remarks</option>
-                  <option value="Tuition Fee">Tuition Fee</option>
-                  <option value="School Fee">School Fee</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Generator/Electricity">Generator/Electricity</option>
-                  <option value="Books & Stationary">Books & Stationary</option>
-                  <option value="Examination Fee">Examination Fee</option>
-                  <option value="Library Fee">Library Fee</option>
-                  <option value="Computer Lab Fee">Computer Lab Fee</option>
-                  <option value="Games & Sports Fee">Games & Sports Fee</option>
-                  <option value="Miscellaneous Charges">Miscellaneous Charges</option>
-                  <option value="Fine">Fine</option>
-                  <option value="Others">Others</option>
-                </select>
-              </div>
-
-
             </div>
+            <h3>Add Fee – {selected.fullname}</h3>
+
+            <table className="receipt-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Particulars</th>
+                  <th>Note</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FEE_HEADS.map((h) => (
+                  <tr key={h}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={!!fees[h]}
+                        onChange={() => toggleFee(h)}
+                      />
+                    </td>
+                    <td>{h}</td>
+                    <td>
+                      <input
+                        disabled={!fees[h]}
+                        value={fees[h]?.note || ""}
+                        onChange={(e) =>
+                          updateFee(h, "note", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        disabled={!fees[h]}
+                        value={fees[h]?.amount || ""}
+                        onChange={(e) =>
+                          updateFee(h, "amount", e.target.value)
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan="3"><strong>TOTAL</strong></td>
+                  <td><strong>₹ {totalPayingNow}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="form-row">
+              <label>Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+
             <div className="fee-modal-buttons">
               <button onClick={submitFee}>Submit</button>
               <button onClick={() => setShowFeeModal(false)}>Close</button>
@@ -348,37 +376,33 @@ const FeeManagement = () => {
         </div>
       )}
 
-
       {/* HISTORY MODAL */}
-      {showHistoryModal && selected && (
+      {showHistoryModal && (
         <div className="fee-modal">
           <div className="fee-modal-content">
-            <h3>Fee History – {selected.fullname}</h3>
 
+            <h3>Fee History</h3>
             <table className="history-table">
               <thead>
                 <tr>
                   <th>Paid</th>
                   <th>Payment Date</th>
                   <th>Due Date</th>
-                  <th>Remarks</th>
                 </tr>
               </thead>
               <tbody>
                 {feeHistory.map((f) => (
                   <tr key={f.paymentId}>
-                    <td>₹{f.payingNow}</td>
+                    <td>₹ {f.payingNow}</td>
                     <td>{f.paymentDate}</td>
                     <td>{f.dueDate}</td>
-                    <td>{f.remarks || "-"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            <div className="fee-modal-buttons">
-              <button onClick={() => setShowHistoryModal(false)}>Close</button>
-            </div>
+            <button onClick={() => setShowHistoryModal(false)}>
+              Close
+            </button>
           </div>
         </div>
       )}

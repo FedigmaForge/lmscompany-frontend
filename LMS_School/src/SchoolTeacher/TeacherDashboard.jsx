@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, Outlet } from "react-router-dom";
 
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function TeacherDashboard() {
   const [profile, setProfile] = useState(null);
@@ -49,7 +49,7 @@ export default function TeacherDashboard() {
   return (
     <div className="sp-page">
 
-      {/* ✅ FIXED SIDEBAR */}
+      {/*  FIXED SIDEBAR */}
       <aside className="sp-sidebar">
         <div className="sp-sidebar-top">
           <div className="sp-avatar-wrap">
@@ -73,7 +73,7 @@ export default function TeacherDashboard() {
         </nav>
       </aside>
 
-      {/* ✅ MAIN CONTENT - Changes by Route */}
+      {/*  MAIN CONTENT - Changes by Route */}
       <main
         style={{
           flex: 1,

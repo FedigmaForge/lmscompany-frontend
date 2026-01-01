@@ -3,7 +3,7 @@ import axios from "axios";
 import ImageCropper from "./ImageCropper";
 import "./TeacherManagement.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);
@@ -141,7 +141,7 @@ const TeacherManagement = () => {
       employeeid: teacher.employeeid || "",
       presentAddress: teacher.presentAddress || "",
       email: teacher.email || "",
-      password: "", // Password removed during edit
+      password: "", 
       active: teacher.active ?? 1,
       photo: null,
       schoolCode: teacher.schoolCode || localStorage.getItem("schoolCode") || "",

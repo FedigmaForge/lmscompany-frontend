@@ -11,14 +11,13 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-const API_BASE = "http://13.234.75.130:4000";
 const STATUS_LIST = ["Present", "Absent", "Leave", "Half-Day", "Holiday"];
 const COLORS = ["#4CAF50", "#F44336", "#FFC107", "#2196F3", "#9C27B0"];
 
 export default function StudentAttendanceSummary() {
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const API_BASE = import.meta.env.VITE_API_URL;
   const schoolCode = "9087124";
   const admissionId = "111";
 

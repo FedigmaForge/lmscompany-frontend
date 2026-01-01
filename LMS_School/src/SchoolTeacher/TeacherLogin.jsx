@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./TeacherLogin.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://13.234.75.130:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const TeacherLogin = () => {
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ const TeacherLogin = () => {
         body: JSON.stringify({ email, password, schoolCode }),
       });
 
-      // ⛔ If server returned no body → avoid crashing
+      //  If server returned no body → avoid crashing
       let data = {};
       try {
         data = await response.clone().json();

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./ClassTeacherAssignment.css";
 
-const API_BASE = "http://13.234.75.130:4000";
+
 
 const ClassTeacherAssignment = () => {
   const [standard, setStandard] = useState("");
@@ -14,6 +14,7 @@ const ClassTeacherAssignment = () => {
   const [search, setSearch] = useState("");
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState(null); // show user-friendly messages
+    const API_URL = import.meta.env.VITE_API_URL;
 
   const schoolCode = localStorage.getItem("schoolCode");
   const token = localStorage.getItem("schoolToken");
@@ -29,7 +30,7 @@ const ClassTeacherAssignment = () => {
   const fetchTeachers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/api/teachers`, {
+      const res = await axios.get(`${API_URL}/api/teachers`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { school_code: schoolCode },
       });
@@ -50,7 +51,7 @@ const ClassTeacherAssignment = () => {
   const fetchAssignments = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE}/api/class-teacher-assignment/assignments`,
+        `${API_URL}/api/class-teacher-assignment/assignments`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { schoolCode },
@@ -101,7 +102,7 @@ const handleAssign = async () => {
     if (editId) {
       // UPDATE
       await axios.put(
-        `${API_BASE}/api/class-teacher-assignment/edit/${editId}`,
+        `${API_URL}/api/class-teacher-assignment/edit/${editId}`,
         { standard, section, teacherId, teacherName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -110,7 +111,7 @@ const handleAssign = async () => {
     } else {
       // CREATE
       await axios.post(
-        `${API_BASE}/api/class-teacher-assignment/assign`,
+        `${API_URL}/api/class-teacher-assignment/assign`,
         { schoolCode, standard, section, teacherId, teacherName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -157,7 +158,7 @@ const handleAssign = async () => {
 
     try {
       await axios.delete(
-        `${API_BASE}/api/class-teacher-assignment/delete/${id}`,
+        `${API_URL}/api/class-teacher-assignment/delete/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage("Assignment deleted.");

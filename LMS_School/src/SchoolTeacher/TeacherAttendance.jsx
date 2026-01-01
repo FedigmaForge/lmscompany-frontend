@@ -16,7 +16,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, Title);
 export default function TeacherAttendance() {
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   const schoolCode = localStorage.getItem("schoolCode");
@@ -32,7 +32,7 @@ export default function TeacherAttendance() {
   const fetchSummary = async () => {
     try {
       const res = await axios.get(
-        `http://13.234.75.130:4000/api/attendance/summary/${schoolCode}/${personId}`
+        `${API_URL}/api/attendance/summary/${schoolCode}/${personId}`
       );
 
       if (res.data.success) {

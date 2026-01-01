@@ -5,12 +5,12 @@ import "./SchoolAdmin.css";
 const Attendance = () => {
   const [employeeId, setEmployeeId] = useState("");
   const [status, setStatus] = useState("Present");
-
+   const API_URL = import.meta.env.VITE_API_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const schoolCode = localStorage.getItem("schoolCode");
-      await axios.post("http://13.234.75.130:4000/api/attendance", {
+      await axios.post(`${API_URL}/api/attendance`, {
         employeeId,
         status,
         schoolCode,

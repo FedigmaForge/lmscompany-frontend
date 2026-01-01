@@ -28,12 +28,14 @@ import TeacherStudents from "./SchoolTeacher/TeacherStudents";
 import TeacherHome from "./SchoolTeacher/TeacherHome";
 import FeeReceiptComponent from "./StudentCorner/FeeReceiptComponent";
 import ClassTeacherAssignment from './SchoolAdmin/ClassTeacherAssignment';
+import AdminDashboard from "./SchoolAdmin/AdminDashboard";
+import OutstandingDues from "./SchoolAdmin/OutstandingDues";
 import "./App.css";
 
 function App() {
   const location = useLocation();
 
-  // ❌ Navbar should NOT be visible on dashboards or login pages
+  // Navbar should NOT be visible on dashboards or login pages
   const hideNavbarRoutes = [
     "/sign-in",
     "/teacherlogin",
@@ -70,7 +72,7 @@ function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/TeacherLogin" element={<TeacherLogin />} />
 
-        {/* ✅ Student Dashboard */}
+        {/*  Student Dashboard */}
         <Route path="/student/dashboard" element={<StudentDashboard />}>
           <Route index element={<StudentProfile />} />
           <Route path="profile" element={<StudentProfile />} />
@@ -80,7 +82,7 @@ function App() {
           <Route path="FeeReceiptComponent" element={<FeeReceiptComponent />} />
         </Route>
 
-        {/* ✅ Teacher Dashboard */}
+        {/* Teacher Dashboard */}
         <Route path="/teacher" element={<TeacherDashboard />}>
           <Route index element={<TeacherHome />} />
           <Route path="profile" element={<TeacherProfile />} />
@@ -93,13 +95,14 @@ function App() {
           />
         </Route>
 
-        {/* ✅ School Admin Dashboard */}
+        {/*  School Admin Dashboard */}
         <Route path="/school-dashboard" element={<SchoolDashboard />}>
-          <Route index element={<h2>Welcome to School Dashboard</h2>} />
+          <Route index element={<AdminDashboard />} />
           <Route path="teacher" element={<TeacherManagement />} />
           <Route path="student" element={<StudentManagement />} />
           <Route path="attendance" element={<AttendanceManagement />} />
           <Route path="fees" element={<FeeManagement />} />
+          <Route path="outstanding-dues" element={<OutstandingDues />} />
           <Route path="class-teacher-assignment" element={<ClassTeacherAssignment />} />
         </Route>
       </Routes>

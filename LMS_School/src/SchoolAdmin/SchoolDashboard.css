@@ -8,6 +8,7 @@
 /* Sidebar */
 .sidebar {
   width: 250px;
+  min-height: 100vh;   /* FULL screen height */
   background-color: #09e62a;
   color: white;
   padding: 20px;
@@ -39,25 +40,29 @@
   background-color: #3b82f6;
 }
 
-.logout-btn {
+.sidebar .logout-btn {
   margin-top: auto;
-  background-color: #ef4444;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
   border: none;
-  padding: 10px;
-  color: white;
+  padding: 12px;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
   transition: background 0.3s ease;
+  display: block;
+  width: 100%;
 }
 
-.logout-btn:hover {
+.sidebar .logout-btn:hover {
   background-color: #dc2626;
 }
+
 
 /* Main Content */
 .dashboard-content {
   flex: 1;
-  padding: 40px;
+  padding: 10px;
   overflow-y: auto;
 }
 

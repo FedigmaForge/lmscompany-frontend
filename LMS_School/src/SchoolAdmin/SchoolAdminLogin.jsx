@@ -9,7 +9,7 @@ const SchoolAdminLogin = () => {
   const [schoolCode, setSchoolCode] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -20,8 +20,8 @@ const SchoolAdminLogin = () => {
     }
 
     try {
-      // ✅ Make sure URL matches backend route
-      const response = await axios.post("http://13.234.75.130:4000/api/schools/login", {
+      // Make sure URL matches backend route
+      const response = await axios.post(`${API_URL}/api/schools/login`, {
         email,
         password,
         school_code: schoolCode, // Must match backend
