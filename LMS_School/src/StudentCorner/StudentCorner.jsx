@@ -6,7 +6,7 @@ import "./StudentCorner.css";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const StudentLogin = () => {
-  const [admissionId, setAdmissionId] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [schoolCode, setSchoolCode] = useState("");
   const [error, setError] = useState("");
@@ -17,18 +17,18 @@ const StudentLogin = () => {
     setError("");
 
     console.log("📥 Login Form Submitted");
-    console.log("➡️ Sending Login Request With:", { admissionId, password, schoolCode });
+    console.log("➡️ Sending Login Request With:", { email, password, schoolCode });
 
-    if (!admissionId || !password || !schoolCode) {
-      setError("Please fill all fields: Admission ID, Password, and School Code");
-      console.warn("⚠️ Validation Failed: Missing Fields");
+    if (!email || !password || !schoolCode) {
+      setError("Please fill all fields: Email, Password, and School Code");
       return;
     }
 
     try {
       console.log(`🌐 POST: ${API_BASE}/api/students/login`);
+
       const res = await axios.post(`${API_BASE}/api/students/login`, {
-        admissionId,
+        email,
         password,
         schoolCode,
       });
@@ -36,14 +36,14 @@ const StudentLogin = () => {
       console.log("✅ Login Response:", res.data);
 
       if (!res.data.success) {
-        console.error("❌ Login Failed:", res.data.message);
         setError(res.data.message || "Invalid credentials");
         return;
       }
 
       console.log("🔐 Storing JWT Token & Login Details in LocalStorage");
+
       localStorage.setItem("studentToken", res.data.token);
-      localStorage.setItem("admissionId", admissionId);
+      localStorage.setItem("studentEmail", email);
       localStorage.setItem("schoolCode", schoolCode);
 
       // ✅ Fetch Student Profile
@@ -54,18 +54,15 @@ const StudentLogin = () => {
         },
       });
 
-      console.log("👤 Profile Response:", profileRes.data);
-
       if (profileRes.data.success) {
-        console.log("💾 Storing Student Profile in LocalStorage");
-        localStorage.setItem("studentProfile", JSON.stringify(profileRes.data.data));
+        localStorage.setItem(
+          "studentProfile",
+          JSON.stringify(profileRes.data.data)
+        );
       }
 
       console.log("✅ Redirecting to /student/dashboard");
-      
       navigate("/student/dashboard");
-     
-
 
     } catch (err) {
       console.error("🔥 Login Error:", err);
@@ -79,16 +76,18 @@ const StudentLogin = () => {
         <h2>Student Login</h2>
         {error && <p className="error-msg">{error}</p>}
 
+        {/* EMAIL */}
         <div className="form-group">
-          <label>Admission ID</label>
+          <label>Email</label>
           <input
-            type="text"
-            value={admissionId}
-            onChange={(e) => setAdmissionId(e.target.value)}
-            placeholder="Enter your Admission ID"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your Email"
           />
         </div>
 
+        {/* PASSWORD */}
         <div className="form-group">
           <label>Password</label>
           <input
@@ -99,6 +98,7 @@ const StudentLogin = () => {
           />
         </div>
 
+        {/* SCHOOL CODE */}
         <div className="form-group">
           <label>School Code</label>
           <input

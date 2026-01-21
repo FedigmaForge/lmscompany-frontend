@@ -126,3 +126,15 @@ td {
   color: #2563eb;
   cursor: pointer;
 }
+.student-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+.no-photo {
+  font-size: 12px;
+  color: #999;
+}

@@ -14,7 +14,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("studentToken");
     if (!token) {
-      navigate("/student-corner");
+      navigate("/sign-in");
       return;
     }
 
@@ -24,13 +24,29 @@ export default function StudentDashboard() {
         const res = await axios.get(`${API_BASE}/api/students/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.data.success) {
-          setProfile(res.data.data);
+
+        if (res.data.success && res.data.data) {
+          const data = res.data.data;
+
+          //  Map backend fields to frontend expectations
+          const mappedProfile = {
+            ...data,
+            fullname: `${data.firstName} ${data.lastName}`,
+            admissionId: data.id,
+            standard: data.studentClass,
+            photo: data.profilePhoto,
+          };
+
+          setProfile(mappedProfile);
+          localStorage.setItem("studentProfile", JSON.stringify(mappedProfile));
         }
       } catch (err) {
+        console.error("StudentDashboard fetch error:", err.response?.data || err.message || err);
+
         if (err.response?.status === 401) {
           localStorage.removeItem("studentToken");
-          navigate("/student-corner");
+          localStorage.removeItem("studentProfile");
+          navigate("/sign-in");
         }
       } finally {
         setLoadingProfile(false);
@@ -43,8 +59,12 @@ export default function StudentDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("studentToken");
     localStorage.removeItem("studentProfile");
-    navigate("/");
+    navigate("/sign-in");
   };
+
+  if (loadingProfile) {
+    return <div className="sp-page"><p className="sp-loading">Loading profile...</p></div>;
+  }
 
   return (
     <div className="sp-page">
@@ -55,7 +75,7 @@ export default function StudentDashboard() {
           <div className="sp-avatar-wrap">
             <img
               className="sp-avatar"
-              src={profile?.photo ? `${API_BASE}${profile.photo}` : "/default-avatar.png"}
+              src={profile?.photo || "/default-avatar.png"}
               alt="Student"
             />
           </div>
@@ -75,20 +95,6 @@ export default function StudentDashboard() {
       </aside>
 
       {/* MAIN CONTENT */}
-      {/* <main className="sp-main">
-        <h1>Welcome {profile?.fullname || "Student"}</h1>
-        <div className="sd-cards">
-          <div className="sd-card">Attendance: <strong>--</strong></div>
-          <div className="sd-card">Homework: <strong>--</strong></div>
-          <div className="sd-card">Results: <strong>--</strong></div>
-        </div>
-
-        <section className="sd-welcome">
-          <h3>Hello {profile?.fullname || "Student"}</h3>
-          <p>Use the menu to view profile, attendance, results and homework.</p>
-        </section>
-      </main> */}
-      {/* Changing Content */}
       <main
         style={{
           flex: 1,
@@ -98,7 +104,7 @@ export default function StudentDashboard() {
           overflowY: "auto"
         }}
       >
-        <Outlet /> {/* 👈 Child pages load here */}
+        <Outlet /> {/*  Child pages load here */}
       </main>
 
     </div>

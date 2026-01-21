@@ -9,7 +9,7 @@
 .sidebar {
   width: 250px;
   min-height: 100vh;   /* FULL screen height */
-  background-color: #09e62a;
+ background: linear-gradient(90deg, #5a6fe0, #6b4298);
   color: white;
   padding: 20px;
   display: flex;

@@ -1,442 +1,585 @@
-// AddStudentModal.jsx
-import React, { useState } from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./AddStudentModal.css";
+import ImageCropper from "./ImageCropper";
 
-const AddStudentModal = ({ onClose }) => {
-    const [step, setStep] = useState(1);
+const API = import.meta.env.VITE_API_URL;
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div
-                className="modal-container"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="modal-header">
-                    <h2>Add New Student</h2>
-                    <button type="button" className="close-btn" onClick={onClose}>
-                        <X />
-                    </button>
-                </div>
+const AddStudentModal = ({ onClose, editData }) => {
+  const [step, setStep] = useState(1);
+  const token = localStorage.getItem("schoolToken");
+  const schoolCode = localStorage.getItem("schoolCode");
 
-                {/* Stepper */}
-                <div className="stepper">
-                    {[
-                        "Personal Information",
-                        "Contact Details",
-                        "Academic Information",
-                        "Additional Details",
-                        "Review & Submit",
-                    ].map((label, index) => (
-                        <div
-                            key={index}
-                            className={`step ${step === index + 1 ? "active" : ""}`}
-                        >
-                            <span>{index + 1}</span>
-                            <p>{label}</p>
-                        </div>
-                    ))}
-                </div>
+  const [rawImage, setRawImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-                {/* ================= STEP 1 ================= */}
-                {step === 1 && (
-                    <div className="form-grid">
-                        <div>
-                            <label>First Name *</label>
-                            <input placeholder="Enter first name" />
-                        </div>
+  const [formData, setFormData] = useState({
+    // PERSONAL
+    firstName: "",
+    lastName: "",
+    fatherName: "",
+    motherName: "",
+    dateOfBirth: "",
+    gender: "",
+    bloodGroup: "",
+    nationality: "Indian",
+    category: "",
+    religion: "",
 
-                        <div>
-                            <label>Last Name *</label>
-                            <input placeholder="Enter last name" />
-                        </div>
+    // CONTACT
+    phone: "",
+    email: "",
+    password: "",
+    address: "",
+    city: "",
+    state: "",
+    pinCode: "",
+    guardianName: "",
+    guardianPhone: "",
+    relation: "",
+    emergencyContact: "",
 
-                        <div>
-                            <label>Father's Name *</label>
-                            <input placeholder="Enter father's name" />
-                        </div>
+    // ACADEMIC
+    studentClass: "",
+    section: "",
+    rollNumber: "",
+    academicSession: "2024-25",
+    feeCategory: "General",
+    feeDiscount: 0,
+    previousClass: "",
+    previousSchool: "",
 
-                        <div>
-                            <label>Mother's Name *</label>
-                            <input placeholder="Enter mother's name" />
-                        </div>
+    // MEDICAL
+    medicalConditions: "",
+    allergies: "",
+    specialNeeds: "",
 
-                        <div>
-                            <label>Date of Birth *</label>
-                            <input type="date" />
-                        </div>
+    // ARRAYS
+    documents: [],
+    optionalServices: [],
 
-                        <div>
-                            <label>Gender *</label>
-                            <div className="radio-group">
-                                <label><input type="radio" name="gender" /> Male</label>
-                                <label><input type="radio" name="gender" /> Female</label>
-                                <label><input type="radio" name="gender" /> Other</label>
-                            </div>
-                        </div>
+    confirmationAccepted: false,
+  });
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  return new Date(dateString).toISOString().split("T")[0];
+};
 
-                        {/*  Blood Group */}
-                        <div>
-                            <label>Blood Group</label>
-                            <select>
-                                <option value="">Select blood group</option>
-                                <option>A+</option>
-                                <option>A-</option>
-                                <option>B+</option>
-                                <option>B-</option>
-                                <option>O+</option>
-                                <option>O-</option>
-                                <option>AB+</option>
-                                <option>AB-</option>
-                            </select>
-                        </div>
+  /* ================= PREFILL FOR EDIT ================= */
 
-                        {/*  Nationality */}
-                        <div>
-                            <label>Nationality</label>
-                            <input defaultValue="Indian" />
-                        </div>
+ useEffect(() => {
+  if (editData) {
+    setFormData((prev) => ({
+      ...prev,
+      ...editData,
 
-                        {/*  Religion */}
-                        <div>
-                            <label>Religion</label>
-                            <input placeholder="Enter religion" />
-                        </div>
+      //  Fix date format for input[type="date"]
+      dateOfBirth: formatDateForInput(editData.dateOfBirth),
 
-                        {/*  Caste / Category */}
-                        <div>
-                            <label>Caste / Category</label>
-                            <select>
-                                <option value="">Select category</option>
-                                <option>General</option>
-                                <option>OBC</option>
-                                <option>SC</option>
-                                <option>ST</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
-                {/* ================= STEP 2 : CONTACT DETAILS ================= */}
-                {step === 2 && (
-                    <>
-                        <div className="form-grid">
-                            {/* Phone & Email */}
-                            <div>
-                                <label>Phone Number *</label>
-                                <input type="text" placeholder="Enter phone number" />
-                            </div>
-
-                            <div>
-                                <label>Email Address</label>
-                                <input type="email" placeholder="Enter email address" />
-                            </div>
-
-                            {/* Address (full width) */}
-                            <div className="full-width">
-                                <label>Address *</label>
-                                <textarea
-                                    rows="3"
-                                    placeholder="Enter complete address"
-                                />
-                            </div>
-
-                            {/* City, State, PIN */}
-                            <div>
-                                <label>City *</label>
-                                <input placeholder="Enter city" />
-                            </div>
-
-                            <div>
-                                <label>State *</label>
-                                <input placeholder="Enter state" />
-                            </div>
-
-                            <div>
-                                <label>PIN Code *</label>
-                                <input placeholder="Enter PIN code" />
-                            </div>
-                        </div>
-
-                        {/* Guardian Information */}
-                        <div className="section-divider">
-                            <span>Guardian Information</span>
-                        </div>
-
-                        <div className="form-grid">
-                            <div>
-                                <label>Guardian Name *</label>
-                                <input placeholder="Enter guardian name" />
-                            </div>
-
-                            <div>
-                                <label>Guardian Phone *</label>
-                                <input placeholder="Enter guardian phone" />
-                            </div>
-
-                            <div>
-                                <label>Relation *</label>
-                                <select>
-                                    <option value="">Select relation</option>
-                                    <option>Father</option>
-                                    <option>Mother</option>
-                                    <option>Brother</option>
-                                    <option>Sister</option>
-                                    <option>Guardian</option>
-                                </select>
-                            </div>
-
-                            <div className="full-width">
-                                <label>Emergency Contact</label>
-                                <input placeholder="Enter emergency contact number" />
-                            </div>
-                        </div>
-                    </>
-                )}
+      documents: editData.documents || [],
+      optionalServices: editData.optionalServices || [],
+      confirmationAccepted: false,
+    }));
+    setStep(1);
+  }
+}, [editData]);
 
 
-                {/* ================= STEP 3 : ACADEMIC INFORMATION ================= */}
-                {step === 3 && (
-                    <>
-                        <div className="form-grid">
-                            {/* Class */}
-                            <div>
-                                <label>Class *</label>
-                                <select>
-                                    <option value="">Select class</option>
-                                    {[...Array(12)].map((_, i) => (
-                                        <option key={i} value={i + 1}>
-                                            Class {i + 1}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+  /* ================= VALIDATION HELPERS ================= */
+const isValidPin = (pin) => !pin || /^\d{6}$/.test(pin);
+  const isValidPhone = (phone) => /^[6-9]\d{9}$/.test(phone);
+  const isValidEmail = (email) =>
+    !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-                            {/* Section */}
-                            <div>
-                                <label>Section *</label>
-                                <select>
-                                    <option value="">Select section</option>
-                                    <option>A</option>
-                                    <option>B</option>
-                                    <option>C</option>
-                                </select>
-                            </div>
+  const validateStep = () => {
+    if (step === 1)
+      return (
+        formData.firstName &&
+        formData.fatherName &&
+        formData.gender &&
+        formData.dateOfBirth
+      );
 
-                            {/* Roll Number */}
-                            <div>
-                                <label>Roll Number</label>
-                                <input placeholder="Auto-generated or manual" />
-                            </div>
+    if (step === 2)
+     return (
+    isValidPhone(formData.phone) &&
+    isValidPhone(formData.guardianPhone) &&
+    (!formData.emergencyContact ||
+      isValidPhone(formData.emergencyContact)) &&
+    isValidEmail(formData.email) &&
+    isValidPin(formData.pinCode) &&
+    formData.address &&
+    formData.city
+  );
 
-                            {/* Academic Session */}
-                            <div>
-                                <label>Academic Session *</label>
-                                <select>
-                                    <option>2024-25</option>
-                                    <option>2025-26</option>
-                                </select>
-                            </div>
+    if (step === 3) return formData.studentClass && formData.section;
 
-                            {/* Previous Class */}
-                            <div>
-                                <label>Previous Class</label>
-                                <input placeholder="Enter previous class" />
-                            </div>
+    return true;
+  };
 
-                            {/* Previous School (FULL WIDTH) */}
-                            <div className="full-width">
-                                <label>Previous School</label>
-                                <input placeholder="Enter previous school name" />
-                            </div>
-                        </div>
+  /* ================= HANDLERS ================= */
 
-                        {/* Fee Category */}
-                        <div className="section-divider">
-                            <span>Fee Category</span>
-                        </div>
+  const PHONE_FIELDS = ["phone", "guardianPhone", "emergencyContact"];
 
-                        <div className="form-grid">
-                            {/* Fee Category */}
-                            <div>
-                                <label>Fee Category</label>
-                                <div className="radio-vertical">
-                                    <label>
-                                        <input type="radio" name="feeCategory" defaultChecked /> General
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="feeCategory" /> Economical
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="feeCategory" /> Premium
-                                    </label>
-                                </div>
-                            </div>
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
 
-                            {/* Fee Discount */}
-                            <div>
-                                <label>Fee Discount (%)</label>
-                                <input type="number" defaultValue={0} />
-                            </div>
+  // Allow only numbers for phone fields
+  if (PHONE_FIELDS.includes(name)) {
+    if (!/^\d*$/.test(value)) return; // block alphabets
+    if (value.length > 10) return;   // limit to 10 digits
+  }
 
-                            {/* Scholarship */}
-                            <div className="checkbox-align">
-                                <label>
-                                    <input type="checkbox" /> Eligible for Scholarship
-                                </label>
-                            </div>
-                        </div>
-                    </>
-                )}
-                {/* ================= STEP 4 : ADDITIONAL DETAILS ================= */}
-                {step === 4 && (
-                    <>
-                        {/* Medical Information */}
-                        <h3 className="section-title">Medical Information</h3>
-
-                        <div className="form-grid">
-                            <div>
-                                <label>Medical Conditions</label>
-                                <textarea
-                                    rows="3"
-                                    placeholder="Enter any medical conditions"
-                                />
-                            </div>
-
-                            <div>
-                                <label>Allergies</label>
-                                <textarea
-                                    rows="3"
-                                    placeholder="Enter any allergies"
-                                />
-                            </div>
-
-                            <div className="full-width">
-                                <label>Special Needs</label>
-                                <textarea
-                                    rows="3"
-                                    placeholder="Enter any special needs or requirements"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Required Documents */}
-                        <div className="section-divider">
-                            <span>Required Documents</span>
-                        </div>
-
-                        <div className="checkbox-grid">
-                            <label><input type="checkbox" /> Birth Certificate</label>
-                            <label><input type="checkbox" /> Address Proof</label>
-                            <label><input type="checkbox" /> Previous Mark Sheet</label>
-                            <label><input type="checkbox" /> Transfer Certificate</label>
-                            <label><input type="checkbox" /> Caste Certificate</label>
-                            <label><input type="checkbox" /> Income Certificate</label>
-                            <label><input type="checkbox" /> Medical Certificate</label>
-                            <label><input type="checkbox" /> Passport Size Photographs</label>
-                        </div>
-
-                        {/* Optional Services */}
-                        <div className="section-divider">
-                            <span>Optional Services</span>
-                        </div>
-
-                        <div className="checkbox-grid">
-                            <label><input type="checkbox" /> Transport Facility</label>
-                            <label><input type="checkbox" /> Hostel Facility</label>
-                            <label><input type="checkbox" /> Lunch Facility</label>
-                            <label><input type="checkbox" /> Extra Coaching</label>
-                        </div>
-                    </>
-                )}
-                {/* ================= STEP 5 : REVIEW & SUBMIT ================= */}
-                {step === 5 && (
-                    <>
-                        <h3 className="section-title">Review Student Information</h3>
-
-                        {/* Personal Information */}
-                        <div className="review-section">
-                            <h4>Personal Information</h4>
-                            <div className="review-grid">
-                                <p><strong>Name:</strong> John Doe</p>
-                                <p><strong>DOB:</strong> 12-06-2012</p>
-                                <p><strong>Gender:</strong> Male</p>
-                                <p><strong>Blood Group:</strong> O+</p>
-                                <p><strong>Nationality:</strong> Indian</p>
-                                <p><strong>Category:</strong> OBC</p>
-                            </div>
-                        </div>
-
-                        {/* Contact Details */}
-                        <div className="review-section">
-                            <h4>Contact Details</h4>
-                            <div className="review-grid">
-                                <p><strong>Phone:</strong> 9876543210</p>
-                                <p><strong>Email:</strong> john@example.com</p>
-                                <p className="full-width">
-                                    <strong>Address:</strong> Hyderabad, Telangana – 500001
-                                </p>
-                                <p><strong>Guardian:</strong> Mr. Smith</p>
-                                <p><strong>Guardian Phone:</strong> 9123456789</p>
-                            </div>
-                        </div>
-
-                        {/* Academic Information */}
-                        <div className="review-section">
-                            <h4>Academic Information</h4>
-                            <div className="review-grid">
-                                <p><strong>Class:</strong> Class 5</p>
-                                <p><strong>Section:</strong> A</p>
-                                <p><strong>Roll Number:</strong> Auto</p>
-                                <p><strong>Session:</strong> 2024-25</p>
-                                <p><strong>Fee Category:</strong> General</p>
-                                <p><strong>Discount:</strong> 0%</p>
-                            </div>
-                        </div>
-
-                        {/* Additional Details */}
-                        <div className="review-section">
-                            <h4>Additional Details</h4>
-                            <div className="review-grid">
-                                <p><strong>Medical Conditions:</strong> None</p>
-                                <p><strong>Allergies:</strong> None</p>
-                                <p><strong>Special Needs:</strong> No</p>
-                                <p className="full-width">
-                                    <strong>Documents:</strong> Birth Certificate, Address Proof
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Final Confirmation */}
-                        <div className="final-confirm">
-                            <label>
-                                <input type="checkbox" /> I confirm that the above information is correct
-                            </label>
-                        </div>
-                    </>
-                )}
+  setFormData((prev) => ({
+    ...prev,
+    [name]: type === "checkbox" ? checked : value,
+  }));
+};
 
 
+  const handleArrayCheck = (name, value) => {
+    setFormData((p) => ({
+      ...p,
+      [name]: p[name].includes(value)
+        ? p[name].filter((v) => v !== value)
+        : [...p[name], value],
+    }));
+  };
 
-                {/* Footer */}
-                <div className="modal-footer">
-                    {step > 1 && (
-                        <button onClick={() => setStep(step - 1)}>
-                            Back
-                        </button>
-                    )}
+  const nextStep = () => {
+    if (!validateStep()) {
+      alert("Please fill all required fields correctly (*)");
+      return;
+    }
+    setStep((p) => p + 1);
+  };
 
-                    {step < 5 ? (
-                        <button className="primary" onClick={() => setStep(step + 1)}>
-                            Next →
-                        </button>
-                    ) : (
-                        <button className="primary">Submit</button>
-                    )}
-                </div>
-            </div>
+  /* ================= IMAGE HELPER ================= */
+
+  const base64ToFile = (base64, filename) => {
+    const arr = base64.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  /* ================= SUBMIT ================= */
+
+  const handleSubmit = async () => {
+    if (!formData.confirmationAccepted) {
+      alert("Please confirm all details");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const fd = new FormData();
+
+      Object.keys(formData).forEach((key) => {
+        if (Array.isArray(formData[key])) {
+          fd.append(key, JSON.stringify(formData[key]));
+        } else {
+          fd.append(key, formData[key]);
+        }
+      });
+
+      fd.append("schoolCode", schoolCode);
+
+      if (croppedImage) {
+        const imageFile = base64ToFile(
+          croppedImage,
+          `student_${Date.now()}.jpg`
+        );
+        fd.append("profilePhoto", imageFile);
+      }
+
+      let res;
+
+      if (editData) {
+        res = await axios.put(
+          `${API}/api/students/update/${editData.id}`,
+          fd,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      } else {
+        res = await axios.post(`${API}/api/students/add`, fd, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      }
+
+      if (res.data.success) {
+        alert(
+          editData
+            ? "Student Updated Successfully"
+            : "Student Added Successfully"
+        );
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Server Error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= REVIEW ROW ================= */
+
+  const R = ({ l, v }) => (
+    <p>
+      <b>{l}:</b> {v || "-"}
+    </p>
+  );
+
+  /* ================= UI ================= */
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2>{editData ? "Edit Student" : "Add Student"}</h2>
+          <button className="close-btn" onClick={onClose}>
+            ✖
+          </button>
         </div>
-    );
+
+        {/* ================= STEPPER ================= */}
+        <div className="stepper">
+          {[
+            "Personal Information",
+            "Contact Details",
+            "Academic Information",
+            "Additional Details",
+            "Review & Submit",
+          ].map((label, index) => (
+            <div
+              key={index}
+              className={`step ${step === index + 1 ? "active" : ""}`}
+            >
+              <span>{index + 1}</span>
+              <p>{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ================= STEP 1 ================= */}
+        {step === 1 && (
+          <div className="form-grid">
+  <input
+    name="firstName"
+    placeholder="First Name*"
+    value={formData.firstName}
+    onChange={handleChange}
+  />
+
+  <input
+    name="lastName"
+    placeholder="Last Name"
+    value={formData.lastName}
+    onChange={handleChange}
+  />
+
+  <input
+    name="fatherName"
+    placeholder="Father Name*"
+    value={formData.fatherName}
+    onChange={handleChange}
+  />
+
+  <input
+    name="motherName"
+    placeholder="Mother Name"
+    value={formData.motherName}
+    onChange={handleChange}
+  />
+
+ <div>
+  <label style={{ fontSize: "12px" }}>Date of Birth</label>
+  <input
+  type="date"
+  name="dateOfBirth"
+  value={formData.dateOfBirth || ""}
+  onChange={handleChange}
+/>
+</div>
+
+
+  {/* Gender */}
+  <select name="gender" value={formData.gender} onChange={handleChange}>
+    <option value="">Gender*</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Other">Other</option>
+  </select>
+
+  {/* Blood Group Dropdown */}
+  <select
+    name="bloodGroup"
+    value={formData.bloodGroup}
+    onChange={handleChange}
+  >
+    <option value="">Select Blood Group</option>
+    <option value="A+">A+</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B-">B-</option>
+    <option value="AB+">AB+</option>
+    <option value="AB-">AB-</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+  </select>
+
+  <input
+    name="nationality"
+    placeholder="Nationality"
+    value={formData.nationality}
+    onChange={handleChange}
+  />
+
+  {/* Religion Dropdown */}
+  <select
+    name="religion"
+    value={formData.religion}
+    onChange={handleChange}
+  >
+    <option value="">Select Religion</option>
+    <option value="Hindu">Hindu</option>
+    <option value="Muslim">Muslim</option>
+    <option value="Christian">Christian</option>
+    <option value="Sikh">Sikh</option>
+    <option value="Buddhist">Buddhist</option>
+    <option value="Jain">Jain</option>
+    <option value="Other">Other</option>
+  </select>
+
+  {/* Category */}
+  <select name="category" value={formData.category} onChange={handleChange}>
+    <option value="">Category</option>
+    <option value="General">General</option>
+    <option value="OBC">OBC</option>
+    <option value="SC">SC</option>
+    <option value="ST">ST</option>
+  </select>
+</div>
+
+        )}
+
+        {/* ================= STEP 2 ================= */}
+        {step === 2 && (
+          <div className="form-grid">
+            <div className="profile-upload">
+              <label>Profile Photo</label>
+
+              <input
+                type="file"
+                accept="image/*"
+                onClick={(e) => (e.target.value = null)}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setRawImage(file);
+                    setShowCropper(true);
+                  }
+                }}
+              />
+
+              {croppedImage && (
+                <img
+                  src={croppedImage}
+                  alt="Preview"
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    marginTop: 10,
+                  }}
+                />
+              )}
+            </div>
+
+            <input
+  name="phone"
+  placeholder="Phone*"
+  value={formData.phone}
+  onChange={handleChange}
+  inputMode="numeric"
+  maxLength={10}
+/>
+            <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} />
+            <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} />
+            <textarea className="full-width" name="address" placeholder="Address*" value={formData.address} onChange={handleChange} />
+            <input name="city" placeholder="City*" value={formData.city} onChange={handleChange} />
+            <input name="state" placeholder="State" value={formData.state} onChange={handleChange} />
+            <input name="pinCode" placeholder="PIN" value={formData.pinCode} onChange={handleChange} />
+            <input name="guardianName" placeholder="Guardian Name" value={formData.guardianName} onChange={handleChange} />
+            <input
+  name="guardianPhone"
+  placeholder="Guardian Phone*"
+  value={formData.guardianPhone}
+  onChange={handleChange}
+  inputMode="numeric"
+  maxLength={10}
+/>
+            <input name="relation" placeholder="Relation" value={formData.relation} onChange={handleChange} />
+            <input
+  name="emergencyContact"
+  placeholder="Emergency Contact"
+  value={formData.emergencyContact}
+  onChange={handleChange}
+  inputMode="numeric"
+  maxLength={10}
+/>
+          </div>
+        )}
+
+        {/* ================= STEP 3 ================= */}
+        {step === 3 && (
+          <div className="form-grid">
+            <input name="studentClass" placeholder="Class*" value={formData.studentClass} onChange={handleChange} />
+            <input name="section" placeholder="Section*" value={formData.section} onChange={handleChange} />
+            <input name="rollNumber" placeholder="Roll Number" value={formData.rollNumber} onChange={handleChange} />
+            <input name="academicSession" value={formData.academicSession} onChange={handleChange} />
+            <input name="feeCategory" value={formData.feeCategory} onChange={handleChange} />
+            <input type="number" name="feeDiscount" value={formData.feeDiscount} onChange={handleChange} />
+            <input name="previousClass" placeholder="Previous Class" value={formData.previousClass} onChange={handleChange} />
+            <input name="previousSchool" placeholder="Previous School" value={formData.previousSchool} onChange={handleChange} />
+          </div>
+        )}
+
+        {/* ================= STEP 4 ================= */}
+        {/* ================= STEP 4 ================= */}
+{step === 4 && (
+  <>
+    <div className="form-grid">
+      <textarea
+        name="medicalConditions"
+        placeholder="Medical Conditions"
+        value={formData.medicalConditions}
+        onChange={handleChange}
+      />
+
+      <textarea
+        name="allergies"
+        placeholder="Allergies"
+        value={formData.allergies}
+        onChange={handleChange}
+      />
+
+      <textarea
+        name="specialNeeds"
+        placeholder="Special Needs"
+        value={formData.specialNeeds}
+        onChange={handleChange}
+      />
+    </div>
+
+    <h4>Documents</h4>
+    <div className="checkbox-grid">
+      {["Birth Certificate", "TC", "Mark Sheet", "Address Proof"].map(d => (
+        <label key={d}>
+          <input
+            type="checkbox"
+            checked={formData.documents.includes(d)}
+            onChange={() => handleArrayCheck("documents", d)}
+          />
+          {d}
+        </label>
+      ))}
+    </div>
+
+    <h4>Optional Services</h4>
+    <div className="checkbox-grid">
+      {["Transport", "Hostel", "Lunch", "Coaching"].map(s => (
+        <label key={s}>
+          <input
+            type="checkbox"
+            checked={formData.optionalServices.includes(s)}
+            onChange={() => handleArrayCheck("optionalServices", s)}
+          />
+          {s}
+        </label>
+      ))}
+    </div>
+  </>
+)}
+
+
+        {/* ================= STEP 5 ================= */}
+        {step === 5 && (
+          <div className="review-section">
+            <R l="Name" v={`${formData.firstName} ${formData.lastName}`} />
+            <R l="Phone" v={formData.phone} />
+            <R l="Class" v={`${formData.studentClass}-${formData.section}`} />
+
+            <label className="final-confirm">
+              <input
+                type="checkbox"
+                name="confirmationAccepted"
+                checked={formData.confirmationAccepted}
+                onChange={handleChange}
+              />
+              I confirm all details are correct
+            </label>
+          </div>
+        )}
+
+        {/* ================= FOOTER ================= */}
+        <div className="modal-footer">
+          {step > 1 && (
+            <button onClick={() => setStep(step - 1)}>Back</button>
+          )}
+
+          {step < 5 ? (
+            <button
+              className="primary"
+              disabled={!validateStep()}
+              onClick={nextStep}
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              className="primary"
+              disabled={loading}
+              onClick={handleSubmit}
+            >
+              {loading ? "Saving..." : editData ? "Update" : "Submit"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* IMAGE CROPPER */}
+      {showCropper && (
+        <ImageCropper
+          image={rawImage}
+          onSave={(img) => {
+            setCroppedImage(img);
+            setShowCropper(false);
+          }}
+          onClose={() => setShowCropper(false)}
+        />
+      )}
+    </div>
+  );
 };
 
 export default AddStudentModal;

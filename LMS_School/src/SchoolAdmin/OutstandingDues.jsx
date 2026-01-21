@@ -1,205 +1,195 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import "./OutstandingDues.css";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+const OutstandingDues = () => {
+  const { state } = useLocation();
+  const student = state?.student;
+  const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+  const [fees, setFees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedFees, setSelectedFees] = useState([]);
 
-const OutstandingDues = ({ onClose }) => {
-    const schoolCode = localStorage.getItem("schoolCode");
-    const { state } = useLocation();
-    const navigate = useNavigate();
-    const API_URL = import.meta.env.VITE_API_URL;
-    const student = state?.student;
-    const [dues, setDues] = useState([]);
-    const [paying, setPaying] = useState({});
-    const [waiveFine, setWaiveFine] = useState({});
-    const [approvedBy, setApprovedBy] = useState("");
-    if (!student) {
-        return (
-            <div style={{ padding: 20 }}>
-                <h3>No student selected</h3>
-                <button onClick={() => navigate(-1)}>Go Back</button>
-            </div>
-        );
+  // Fetch all fees (PAID + PENDING)
+  const fetchFees = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/fee/pending-fees/${student.id}`);
+      setFees(res.data.data || []);
+    } catch (err) {
+      console.error("Fetch fees error:", err);
+      alert("Failed to load fees");
+    } finally {
+      setLoading(false);
     }
-    const closePage = () => {
-        navigate(-1);
-    };
-    // -----------------------------
-    // FETCH OUTSTANDING MONTHS
-    // -----------------------------
-    const fetchOutstanding = async () => {
-        try {
-            const res = await axios.get(
-                `${API_URL}/api/fee/outstanding/${student.admissionId}/${schoolCode}`
-            );
-            setDues(res.data.dues || []);
-        } catch (err) {
-            console.error(err);
-            setDues([]);
-        }
-    };
+  };
 
-    useEffect(() => {
-        fetchOutstanding();
-    }, []);
+  useEffect(() => {
+    if (student?.id) fetchFees();
+  }, [student]);
 
-    // -----------------------------
-    // HANDLE PAYMENT INPUT
-    // -----------------------------
-    const updatePaying = (month, value) => {
-        setPaying((prev) => ({
-            ...prev,
-            [month]: Number(value),
-        }));
-    };
+  const toggleFeeSelection = (fee) => {
+    if (fee.status !== "PENDING") return; // Only allow pending
+    setSelectedFees((prev) => {
+      const exists = prev.find((f) => f.itemId === fee.itemId);
+      if (exists) return prev.filter((f) => f.itemId !== fee.itemId);
+      return [...prev, fee];
+    });
+  };
 
-    const toggleWaiveFine = (month) => {
-        setWaiveFine((prev) => ({
-            ...prev,
-            [month]: !prev[month],
-        }));
-    };
+  const totalPending = useMemo(() => {
+    return fees
+      .filter(f => f.status === "PENDING")
+      .reduce((sum, f) => sum + Number(f.amount || 0), 0);
+  }, [fees]);
 
-    // -----------------------------
-    // SUBMIT PAYMENT
-    // -----------------------------
-    const submitOutstandingPayment = async () => {
-        const payload = dues
-            .filter((d) => paying[d.month] > 0)
-            .map((d) => ({
-                month: d.month,
-                payingNow: paying[d.month],
-                fine:
-                    waiveFine[d.month] ? 0 : Number(d.fine || 0),
-                fineWaivedBy: waiveFine[d.month]
-                    ? approvedBy
-                    : null,
-            }));
+  const selectedTotal = useMemo(() => {
+    return selectedFees.reduce((sum, f) => sum + Number(f.amount || 0), 0);
+  }, [selectedFees]);
 
-        if (!payload.length) {
-            alert("Enter amount to pay");
-            return;
-        }
+  const nearestDueDate = useMemo(() => {
+    const pendingDates = fees
+      .filter(f => f.status === "PENDING" && f.dueDate)
+      .map(f => new Date(f.dueDate))
+      .filter(d => !isNaN(d));
+    if (pendingDates.length === 0) return null;
+    return new Date(Math.min(...pendingDates));
+  }, [fees]);
 
-        if (Object.values(waiveFine).includes(true) && !approvedBy) {
-            alert("Please enter approved by (Director/Admin)");
-            return;
-        }
+  const paySelectedFees = async () => {
+    if (selectedFees.length === 0) {
+      alert("Please select at least one fee to pay");
+      return;
+    }
 
-        try {
-            await axios.post(`${API_URL}/api/fee/outstanding/pay`, {
-                admissionId: student.admissionId,
-                studentId: student.id,
-                schoolCode,
-                payments: payload,
-            });
+    const feeMasterId = selectedFees[0]?.feeMasterId;
+    if (!feeMasterId) {
+      console.error("Missing feeMasterId!", selectedFees);
+      return alert("Error: Fee master ID not found for selected items");
+    }
 
-            alert("Outstanding dues cleared successfully");
-            onClose();
-        } catch (err) {
-            console.error(err);
-            alert("Payment failed");
-        }
+    const payload = {
+      studentId: student.id,
+      feeMasterId,
+      selectedItems: selectedFees.map(f => ({
+        itemId: f.itemId,
+        feeHead: f.feeHead,
+        amount: f.amount
+      }))
     };
 
-    // -----------------------------
-    // UI
-    // -----------------------------
-    return (
-        <div className="dues-modal">
-            <div className="dues-modal-content">
-                <span className="dues-close" onClick={closePage}>×</span>
+    console.log("===== PAY PENDING FEES START =====");
+    console.log("Outgoing payload:", payload);
 
-                <button className="cancel" onClick={closePage}>
-                    Close
-                </button>
+    try {
+      const res = await axios.post(`${API_URL}/api/fee/pay-pending`, payload);
+      console.log("✅ Payment response:", res.data);
+      alert("✅ Payment successful");
+      setSelectedFees([]);
+      await fetchFees();
+    } catch (err) {
+      console.error("❌ Payment failed:", err.response?.data || err);
+      alert("❌ Payment failed");
+    }
 
-                <h3>Outstanding Dues</h3>
+    console.log("===== PAY PENDING FEES END =====");
+  };
 
-                {/* STUDENT INFO */}
-                <div className="dues-student-box">
-                    <div><strong>Name:</strong> {student.fullname}</div>
-                    <div><strong>Admission ID:</strong> {student.admissionId}</div>
-                    <div><strong>Contact:</strong> {student.contactNumber}</div>
-                </div>
+  if (!student) return <p>Student not found</p>;
+  if (loading) return <p>Loading fees...</p>;
 
-                {/* OUTSTANDING TABLE */}
-                <table className="dues-table">
-                    <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Total</th>
-                            <th>Paid</th>
-                            <th>Fine</th>
-                            <th>Due</th>
-                            <th>Pay Now</th>
-                            <th>Waive Fine</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {dues.map((d) => {
-                            const effectiveFine = waiveFine[d.month]
-                                ? 0
-                                : Number(d.fine || 0);
-
-                            return (
-                                <tr key={d.month}>
-                                    <td>{d.month}</td>
-                                    <td>₹{d.totalAmount}</td>
-                                    <td>₹{d.paidAmount}</td>
-                                    <td>₹{effectiveFine}</td>
-                                    <td>
-                                        ₹{d.totalAmount - d.paidAmount + effectiveFine}
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            placeholder="0"
-                                            onChange={(e) =>
-                                                updatePaying(d.month, e.target.value)
-                                            }
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            checked={!!waiveFine[d.month]}
-                                            onChange={() => toggleWaiveFine(d.month)}
-                                        />
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-
-                {/* APPROVAL */}
-                {Object.values(waiveFine).includes(true) && (
-                    <div className="approval-box">
-                        <label>Approved By</label>
-                        <input
-                            placeholder="Director / Admin"
-                            value={approvedBy}
-                            onChange={(e) => setApprovedBy(e.target.value)}
-                        />
-                    </div>
-                )}
-
-                {/* ACTIONS */}
-                <div className="dues-actions">
-                    <button onClick={submitOutstandingPayment}>
-                        Submit Payment
-                    </button>
-                    <button className="cancel" onClick={closePage}>
-                        Close
-                    </button>
-                </div>
-            </div>
+  return (
+    <div className="dues-container">
+      <div className="dues-card">
+        <div className="dues-header">
+          <h2>Outstanding Dues</h2>
         </div>
-    );
+
+        {/* Student Info */}
+        <div className="student-info">
+          <div className="info-box"><b>Name:</b> {student.firstName} {student.lastName}</div>
+          <div className="info-box"><b>Roll:</b> {student.rollNumber}</div>
+          <div className="info-box"><b>Class:</b> {student.studentClass} - {student.section}</div>
+        </div>
+
+        {fees.length > 0 ? (
+          <>
+            {/* Summary */}
+            <div className="summary-box">
+              <div className="summary-card amount">
+                <h3>₹ {totalPending}</h3>
+                <p>Total Pending</p>
+              </div>
+              <div className="summary-card date">
+                <h3>{nearestDueDate ? nearestDueDate.toLocaleDateString() : "-"}</h3>
+                <p>Nearest Due Date</p>
+              </div>
+              <div style={{ display: "flex", gap: 20, marginBottom: 15 }}>
+                <button
+                  className="pay-now-btn"
+                  disabled={selectedFees.length === 0}
+                  onClick={paySelectedFees}
+                >
+                  💳 Pay Selected ({selectedFees.length})
+                </button>
+                <div style={{ fontWeight: 600 }}>Selected Amount: ₹ {selectedTotal}</div>
+              </div>
+            </div>
+
+            {/* Table */}
+            <table className="dues-table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Fee Master ID</th>
+                  <th>Fee Head</th>
+                  <th>Amount</th>
+                  <th>Note</th>
+                  <th>Status</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fees.map(f => {
+                  const isOverdue = f.dueDate && new Date(f.dueDate) < new Date();
+                  const isPending = f.status === "PENDING";
+                  return (
+                    <tr key={f.itemId} className={isOverdue ? "overdue" : ""}>
+                      <td>
+                        {isPending ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedFees.some(s => s.itemId === f.itemId)}
+                            onChange={() => toggleFeeSelection(f)}
+                          />
+                        ) : (
+                          "✔"
+                        )}
+                      </td>
+                      <td>{f.feeMasterId}</td>
+                      <td>{f.feeHead}</td>
+                      <td>₹ {f.amount}</td>
+                      <td>{f.note || "-"}</td>
+                      <td>
+                        <span className={`status-badge ${f.status?.toLowerCase()}`}>
+                          {f.status}
+                        </span>
+                      </td>
+                      <td>{f.dueDate ? new Date(f.dueDate).toLocaleDateString() : "-"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        ) : (
+          <div className="no-dues">🎉 No fees found</div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default OutstandingDues;

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./FeeManagement.css";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, useLocation } from "react-router-dom";
 
 const FEE_HEADS = [
   "Tuition Fee",
@@ -20,7 +19,8 @@ const FEE_HEADS = [
 
 const FeeManagement = () => {
   const schoolCode = localStorage.getItem("schoolCode");
- const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { state } = useLocation();
   const [students, setStudents] = useState([]);
   const [results, setResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,46 +35,166 @@ const FeeManagement = () => {
   const [payingDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [fees, setFees] = useState({});
+  const [pendingFees, setPendingFees] = useState({}); // New state for pending fees
   const [feeHistory, setFeeHistory] = useState([]);
+  const [pendingCounts, setPendingCounts] = useState({});
 
+  const fetchPendingCounts = async (studentList) => {
+  try {
+    const counts = {};
+
+    await Promise.all(
+      studentList.map(async (stu) => {
+        const res = await axios.get(
+          `${API_URL}/api/fee/pending-count/${stu.id}`
+        );
+        counts[stu.id] = res.data.count || 0;
+      })
+    );
+
+    setPendingCounts(counts);
+  } catch (err) {
+    console.error("❌ Pending count fetch failed", err);
+  }
+};
+
+  // -----------------------------------
+  // FETCH STUDENTS
+  // -----------------------------------
   // -----------------------------------
   // FETCH STUDENTS
   // -----------------------------------
   const fetchStudents = async () => {
     try {
-      const res = await axios.get(
-        `${API_URL}/api/students?school_code=${schoolCode}`
-      );
+      console.log("🔍 Fetching students...");
+      console.log("School Code:", schoolCode);
+      console.log("API URL:", API_URL);
+
+      const res = await axios.get(`${API_URL}/api/students?schoolCode=${schoolCode}`);
+      console.log("✅ API Response:", res.data);
+
+      // Ensure data is an array
       const list = Array.isArray(res.data.data) ? res.data.data : [];
-      setStudents(list);
-      setResults(list);
+
+      // Map backend fields to frontend-friendly names
+      const mappedList = list.map((s) => ({
+        ...s,
+        photo: s.profilePhoto, // map profilePhoto → photo
+        fullname: `${s.firstName} ${s.lastName}`, // add fullname
+      }));
+
+      console.log("📋 Mapped Students List:", mappedList);
+
+      setStudents(mappedList);
+      setResults(mappedList);
+      fetchPendingCounts(mappedList);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Fetch Students Error:", err);
+      console.error("Error Response:", err.response?.data);
+      console.error("Error Status:", err.response?.status);
+      alert(`Failed to fetch students: ${err.response?.data?.message || err.message}`);
     }
   };
 
+
   useEffect(() => {
+    if (!schoolCode) {
+      alert("⚠️ School Code is missing! Please log in again.");
+      return;
+    }
+
+    if (!API_URL) {
+      alert("⚠️ API URL is not configured! Check your .env file.");
+      return;
+    }
+
     fetchStudents();
   }, []);
+useEffect(() => {
+  if (!state || !state.payStudent || !students.length) return;
+
+  const matchedStudent = students.find(
+    s => s.id === state.payStudent.id
+  );
+
+  if (matchedStudent) {
+    openFeeModal(matchedStudent);
+
+    const autoPending = {};
+    state.selectedFees?.forEach(fee => {
+      autoPending[fee.feeHead] = {
+        amount: fee.amount,
+        note: fee.note || ""
+      };
+    });
+
+    setPendingFees(autoPending);
+  }
+}, [state, students]);
+
+
 
   // -----------------------------------
   // SEARCH
   // -----------------------------------
   const searchNow = async () => {
+    // If search is empty, show all students
     if (!searchQuery.trim()) {
       setResults(students);
       return;
     }
 
+    console.log("🔍 Searching for:", searchQuery);
+
     try {
       const res = await axios.get(
         `${API_URL}/api/students/search?query=${searchQuery}&schoolCode=${schoolCode}`
       );
+
+      console.log("✅ Search Response:", res.data);
       setResults(res.data.data || []);
     } catch (err) {
-      console.error(err);
-      setResults([]);
+      console.error("❌ Search Error:", err);
+      console.error("Error Response:", err.response?.data);
+
+      // If search endpoint doesn't exist, filter locally
+      if (err.response?.status === 404 || err.response?.status === 500) {
+        console.log("⚠️ Backend search not available, filtering locally");
+        filterLocally();
+      } else {
+        setResults([]);
+      }
     }
+  };
+
+  // -----------------------------------
+  // LOCAL FILTER (Fallback)
+  // -----------------------------------
+  const filterLocally = () => {
+    const query = searchQuery.toLowerCase().trim();
+
+    const filtered = students.filter((student) => {
+      const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
+      const phone = String(student.phone || "");
+      const rollNumber = String(student.rollNumber || "").toLowerCase();
+      const studentClass = String(student.studentClass || "").toLowerCase();
+      const section = String(student.section || "").toLowerCase();
+      const email = String(student.email || "").toLowerCase();
+
+      return (
+        fullName.includes(query) ||
+        phone.includes(query) ||
+        rollNumber.includes(query) ||
+        studentClass.includes(query) ||
+        section.includes(query) ||
+        email.includes(query)
+      );
+    });
+
+    console.log(
+      `📊 Filtered ${filtered.length} out of ${students.length} students`
+    );
+    setResults(filtered);
   };
 
   // -----------------------------------
@@ -83,10 +203,11 @@ const FeeManagement = () => {
   const openFeeModal = async (stu) => {
     setSelected(stu);
     setFees({});
+    setPendingFees({}); // Reset pending fees
 
     try {
       const res = await axios.get(
-        `${API_URL}/api/fee/summary/${stu.admissionId}/${schoolCode}`
+        `${API_URL}/api/fee/summary/${stu.id}/${schoolCode}`
       );
 
       const summary = res.data.summary || {};
@@ -101,19 +222,21 @@ const FeeManagement = () => {
         setDueDate("");
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Fee Summary Error:", err);
+      console.error("Error Response:", err.response?.data);
     }
 
     setShowFeeModal(true);
   };
-    // -----------------------------------
-  //outstanding-dues
+
+  // -----------------------------------
+  // OUTSTANDING DUES
   // -----------------------------------
   const openOutstandingModal = (student) => {
-  navigate("/school-dashboard/outstanding-dues", {
-    state: { student },
-  });
-};
+    navigate("/school-dashboard/outstanding-dues", {
+      state: { student },
+    });
+  };
 
   // -----------------------------------
   // OPEN HISTORY
@@ -122,18 +245,19 @@ const FeeManagement = () => {
     setSelected(stu);
     try {
       const res = await axios.get(
-        `${API_URL}/api/fee/history/${stu.admissionId}/${schoolCode}`
+        `${API_URL}/api/fee/history/${stu.id}/${schoolCode}`
       );
       setFeeHistory(res.data.payments || []);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Fee History Error:", err);
+      console.error("Error Response:", err.response?.data);
       setFeeHistory([]);
     }
     setShowHistoryModal(true);
   };
 
   // -----------------------------------
-  // FEE BREAKUP HANDLERS
+  // PAYING NOW FEE HANDLERS
   // -----------------------------------
   const toggleFee = (head) => {
     setFees((prev) => {
@@ -160,63 +284,96 @@ const FeeManagement = () => {
   );
 
   // -----------------------------------
-  // SUBMIT PAYMENT
+  // PENDING FEE HANDLERS
   // -----------------------------------
-const submitFee = async () => {
-  const requestPayload = {
-    admissionId: selected.admissionId,
-    studentId: selected.id,
-    schoolCode,
-    payingNow: totalPayingNow,
-    dueDate,
-    feeBreakup: fees, // receipt style
+  const togglePendingFee = (head) => {
+    setPendingFees((prev) => {
+      const updated = { ...prev };
+      if (updated[head]) delete updated[head];
+      else updated[head] = { amount: "", note: "" };
+      return updated;
+    });
   };
 
-  // ===============================
-  // 🔍 BEFORE API CALL (DEVTOOLS)
-  // ===============================
-  console.group("💰 FEE PAYMENT SUBMIT");
-  console.log("👨‍🎓 Student Selected:", selected);
-  console.log("🏫 School Code:", schoolCode);
-  console.log("📄 Admission ID:", selected.admissionId);
-  console.log("🧾 Student ID:", selected.id);
-  console.log("💵 Total Paying Now:", totalPayingNow);
-  console.log("📆 Due Date:", dueDate);
-  console.log("🧮 Fee Breakup Object:", fees);
-  console.log("📦 Final Payload:", requestPayload);
-  console.groupEnd();
+  const updatePendingFee = (head, field, value) => {
+    setPendingFees((prev) => ({
+      ...prev,
+      [head]: {
+        ...prev[head],
+        [field]: value,
+      },
+    }));
+  };
 
-  try {
-    const res = await axios.post(
-      `${API_URL}/api/fee/pay`,
-      requestPayload
-    );
+  const totalPending = Object.values(pendingFees).reduce(
+    (sum, f) => sum + Number(f.amount || 0),
+    0
+  );
+
+  // -----------------------------------
+  // SUBMIT PAYMENT
+  // -----------------------------------
+  const submitFee = async () => {
+    if (totalPayingNow <= 0 && totalPending <= 0) {
+      alert("Please add at least one fee item (paying or pending)");
+      return;
+    }
+
+    const requestPayload = {
+      studentId: selected.id,
+      schoolCode,
+      payingNow: totalPayingNow,
+      pendingAmount: totalPending,
+      dueDate,
+      feeBreakup: fees, // Fees being paid now
+      pendingFeeBreakup: pendingFees, // Fees that are pending
+      totalAmount: totalPayingNow + totalPending,
+    };
 
     // ===============================
-    //  AFTER SUCCESS
+    // 🔍 BEFORE API CALL (DEVTOOLS)
     // ===============================
-    console.group(" FEE PAYMENT SUCCESS");
-    console.log(" API Response:", res.data);
+    console.group("💰 FEE PAYMENT SUBMIT");
+    console.log("👨‍🎓 Student Selected:", selected);
+    console.log("🏫 School Code:", schoolCode);
+    console.log("🧾 Student ID:", selected.id);
+    console.log("💵 Total Paying Now:", totalPayingNow);
+    console.log("⏳ Total Pending:", totalPending);
+    console.log("💰 Grand Total:", totalPayingNow + totalPending);
+    console.log("📆 Due Date:", dueDate);
+    console.log("🧮 Fee Breakup (Paying):", fees);
+    console.log("🧮 Pending Fee Breakup:", pendingFees);
+    console.log("📦 Final Payload:", requestPayload);
     console.groupEnd();
 
-    alert("Fee payment added successfully");
-    setShowFeeModal(false);
-    fetchStudents();
+    try {
+      const res = await axios.post(`${API_URL}/api/fee/pay`, requestPayload);
 
-  } catch (err) {
-    // ===============================
-    // ERROR HANDLING
-    // ===============================
-    console.group("❌ FEE PAYMENT FAILED");
-    console.error("Error Message:", err.message);
-    console.error("Error Response:", err.response?.data);
-    console.error("Error Status:", err.response?.status);
-    console.groupEnd();
+      // ===============================
+      //  AFTER SUCCESS
+      // ===============================
+      console.group("✅ FEE PAYMENT SUCCESS");
+      console.log("✅ API Response:", res.data);
+      console.groupEnd();
 
-    alert("Fee payment failed");
-  }
-};
+      alert("Fee payment added successfully");
+      setShowFeeModal(false);
+      fetchStudents();
+    } catch (err) {
+      // ===============================
+      //  ERROR HANDLING
+      // ===============================
+      console.group("❌ FEE PAYMENT FAILED");
+      console.error("Error Message:", err.message);
+      console.error("Error Response:", err.response?.data);
+      console.error("Error Status:", err.response?.status);
+      console.groupEnd();
 
+      alert(
+        `Fee payment failed: ${err.response?.data?.message || err.message}`
+      );
+    }
+  };
 
   // -----------------------------------
   // UI
@@ -227,11 +384,23 @@ const submitFee = async () => {
 
       <div className="fee-search-box">
         <input
-          placeholder="Search by Name / Admission ID / Phone"
+          placeholder="Search by Name / Roll Number / Phone"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && searchNow()}
         />
         <button onClick={searchNow}>Search</button>
+        {searchQuery && (
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setResults(students);
+            }}
+            style={{ marginLeft: "10px" }}
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       <table className="students-table">
@@ -239,7 +408,8 @@ const submitFee = async () => {
           <tr>
             <th>Photo</th>
             <th>Name</th>
-            <th>Admission ID</th>
+            <th>Class</th>
+            <th>Roll Number</th>
             <th>Contact</th>
             <th>Add Fee</th>
             <th>Pending Fees</th>
@@ -247,34 +417,53 @@ const submitFee = async () => {
           </tr>
         </thead>
         <tbody>
-          {results.map((s) => (
-            <tr key={s.id}>
-              <td>
-                <img
-                  src={s.photo ? `${API_URL}${s.photo}` : "/user.png"}
-                  className="student-photo"
-                />
-              </td>
-              <td>{s.fullname}</td>
-              <td>{s.admissionId}</td>
-              <td>{s.contactNumber}</td>
-              <td>
-                <button onClick={() => openFeeModal(s)}>Add Fee</button>
-              </td>
-              <td>
-               
-                <button
-                  className="dues-btn"
-                  onClick={() => openOutstandingModal(s)}
-                >
-                  Outstanding Dues
-                </button>
-              </td>
-              <td>
-                <button onClick={() => openHistoryModal(s)}>View</button>
+          {results.length === 0 ? (
+            <tr>
+              <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
+                No students found
               </td>
             </tr>
-          ))}
+          ) : (
+            results.map((s) => (
+              <tr key={s.id}>
+                <td>
+                  <img
+                    src={s.photo || "/user.png"}
+                    className="student-photo"
+                    alt="student"
+                  />
+                </td>
+                <td>
+                  {s.firstName} {s.lastName}
+                </td>
+                <td>
+                  {s.studentClass} - {s.section}
+                </td>
+                <td>{s.rollNumber}</td>
+                <td>{s.phone}</td>
+                <td>
+                  <button onClick={() => openFeeModal(s)}>Add Fee</button>
+                </td>
+               <td>
+  <button
+    className="dues-btn"
+    onClick={() => openOutstandingModal(s)}
+  >
+    Outstanding Dues
+    {pendingCounts[s.id] > 0 && (
+      <span className="badge">
+        {pendingCounts[s.id]}
+      </span>
+    )}
+  </button>
+</td>
+
+                <td>
+                  <button onClick={() => openHistoryModal(s)}>View</button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
@@ -285,13 +474,20 @@ const submitFee = async () => {
             {/* STUDENT DETAILS */}
             <div className="student-info-box">
               <div>
-                <strong>Name:</strong> {selected.fullname}
+                <strong>Name:</strong> {selected.firstName} {selected.lastName}
               </div>
               <div>
-                <strong>Admission ID:</strong> {selected.admissionId}
+                <strong>Student ID:</strong> {selected.id}
               </div>
               <div>
-                <strong>Contact:</strong> {selected.contactNumber}
+                <strong>Class:</strong> {selected.studentClass} -{" "}
+                {selected.section}
+              </div>
+              <div>
+                <strong>Roll Number:</strong> {selected.rollNumber}
+              </div>
+              <div>
+                <strong>Contact:</strong> {selected.phone}
               </div>
             </div>
 
@@ -307,8 +503,15 @@ const submitFee = async () => {
                 <strong>Pending:</strong> ₹ {totalFee - paidFee}
               </div>
             </div>
-            <h3>Add Fee – {selected.fullname}</h3>
 
+            <h3>
+              Add Fee – {selected.firstName} {selected.lastName}
+            </h3>
+
+            {/* PAYING NOW SECTION */}
+            <h4 style={{ marginTop: "20px", color: "#2563eb" }}>
+              💰 Paying Now
+            </h4>
             <table className="receipt-table">
               <thead>
                 <tr>
@@ -333,9 +536,8 @@ const submitFee = async () => {
                       <input
                         disabled={!fees[h]}
                         value={fees[h]?.note || ""}
-                        onChange={(e) =>
-                          updateFee(h, "note", e.target.value)
-                        }
+                        onChange={(e) => updateFee(h, "note", e.target.value)}
+                        placeholder="Optional note"
                       />
                     </td>
                     <td>
@@ -346,6 +548,8 @@ const submitFee = async () => {
                         onChange={(e) =>
                           updateFee(h, "amount", e.target.value)
                         }
+                        placeholder="0"
+                        min="0"
                       />
                     </td>
                   </tr>
@@ -353,14 +557,89 @@ const submitFee = async () => {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan="3"><strong>TOTAL</strong></td>
-                  <td><strong>₹ {totalPayingNow}</strong></td>
+                  <td colSpan="3">
+                    <strong>TOTAL PAYING NOW</strong>
+                  </td>
+                  <td>
+                    <strong>₹ {totalPayingNow}</strong>
+                  </td>
                 </tr>
               </tfoot>
             </table>
 
             <div className="form-row">
-              <label>Due Date</label>
+              <label>Payment Date</label>
+              <input
+                type="date"
+                value={payingDate}
+                readOnly
+                style={{ backgroundColor: "#f3f4f6" }}
+              />
+            </div>
+
+            {/* PENDING FEES SECTION */}
+            <h4 style={{ marginTop: "30px", color: "#dc2626" }}>
+              📋 Pending Fees
+            </h4>
+            <table className="receipt-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Particulars</th>
+                  <th>Note</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FEE_HEADS.map((h) => (
+                  <tr key={h}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={!!pendingFees[h]}
+                        onChange={() => togglePendingFee(h)}
+                      />
+                    </td>
+                    <td>{h}</td>
+                    <td>
+                      <input
+                        disabled={!pendingFees[h]}
+                        value={pendingFees[h]?.note || ""}
+                        onChange={(e) =>
+                          updatePendingFee(h, "note", e.target.value)
+                        }
+                        placeholder="Optional note"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        disabled={!pendingFees[h]}
+                        value={pendingFees[h]?.amount || ""}
+                        onChange={(e) =>
+                          updatePendingFee(h, "amount", e.target.value)
+                        }
+                        placeholder="0"
+                        min="0"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan="3">
+                    <strong>TOTAL PENDING</strong>
+                  </td>
+                  <td>
+                    <strong>₹ {totalPending}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="form-row">
+              <label>Due Date for Pending Fees</label>
               <input
                 type="date"
                 value={dueDate}
@@ -368,8 +647,70 @@ const submitFee = async () => {
               />
             </div>
 
+            {/* GRAND TOTAL */}
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                backgroundColor: "#f9fafb",
+                borderRadius: "8px",
+                border: "2px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "10px",
+                }}
+              >
+                <span>
+                  <strong>Paying Now:</strong>
+                </span>
+                <span style={{ color: "#16a34a" }}>
+                  <strong>₹ {totalPayingNow}</strong>
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "10px",
+                }}
+              >
+                <span>
+                  <strong>Pending:</strong>
+                </span>
+                <span style={{ color: "#dc2626" }}>
+                  <strong>₹ {totalPending}</strong>
+                </span>
+              </div>
+              <hr
+                style={{
+                  margin: "10px 0",
+                  border: "none",
+                  borderTop: "2px solid #d1d5db",
+                }}
+              />
+              <div
+                style={{ display: "flex", justifyContent: "space-between" }}
+              >
+                <span style={{ fontSize: "18px" }}>
+                  <strong>GRAND TOTAL:</strong>
+                </span>
+                <span style={{ fontSize: "18px", color: "#1e40af" }}>
+                  <strong>₹ {totalPayingNow + totalPending}</strong>
+                </span>
+              </div>
+            </div>
+
             <div className="fee-modal-buttons">
-              <button onClick={submitFee}>Submit</button>
+              <button
+                onClick={submitFee}
+                disabled={totalPayingNow <= 0 && totalPending <= 0}
+              >
+                Submit Payment
+              </button>
               <button onClick={() => setShowFeeModal(false)}>Close</button>
             </div>
           </div>
@@ -380,29 +721,36 @@ const submitFee = async () => {
       {showHistoryModal && (
         <div className="fee-modal">
           <div className="fee-modal-content">
+            <h3>
+              Fee History - {selected?.firstName} {selected?.lastName}
+            </h3>
 
-            <h3>Fee History</h3>
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>Paid</th>
-                  <th>Payment Date</th>
-                  <th>Due Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {feeHistory.map((f) => (
-                  <tr key={f.paymentId}>
-                    <td>₹ {f.payingNow}</td>
-                    <td>{f.paymentDate}</td>
-                    <td>{f.dueDate}</td>
+            {feeHistory.length === 0 ? (
+              <p style={{ textAlign: "center", padding: "20px" }}>
+                No payment history found
+              </p>
+            ) : (
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Paid Amount</th>
+                    <th>Payment Date</th>
+                    <th>Due Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <button onClick={() => setShowHistoryModal(false)}>
-              Close
-            </button>
+                </thead>
+                <tbody>
+                  {feeHistory.map((f, index) => (
+                    <tr key={f.paymentId || index}>
+                      <td>₹ {f.payingNow}</td>
+                      <td>{new Date(f.paymentDate).toLocaleDateString()}</td>
+                      <td>{new Date(f.dueDate).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <button onClick={() => setShowHistoryModal(false)}>Close</button>
           </div>
         </div>
       )}

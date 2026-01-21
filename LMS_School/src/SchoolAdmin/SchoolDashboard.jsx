@@ -30,7 +30,7 @@ const SchoolDashboard = () => {
     localStorage.removeItem("schoolCode");
     localStorage.removeItem("schoolName");
 
-    navigate("/");
+    navigate("/sign-in");
   };
 
   return (
@@ -51,15 +51,16 @@ const SchoolDashboard = () => {
         </h3>
 
         <ul className="sidebar-menu">
-          <li onClick={() => navigate("/school-dashboard/teacher")}>👩‍🏫 Teacher</li>
-          <li onClick={() => navigate("/school-dashboard/student")}>🎓 Student</li>
-          <li onClick={() => navigate("/school-dashboard/attendance")}>🗓️ Attendance</li>
+           <li onClick={() => navigate("/school-dashboard")}> Home</li>
+          <li onClick={() => navigate("/school-dashboard/teacher")}> Teacher</li>
+          <li onClick={() => navigate("/school-dashboard/student")}> Student</li>
+          <li onClick={() => navigate("/school-dashboard/attendance")}>Attendance</li>
 
           <li onClick={() => navigate("/school-dashboard/class-teacher-assignment")}>
-            🏫 Class Teacher Assignment
+            Class Teacher Assignment
           </li>
 
-          <li onClick={() => navigate("/school-dashboard/fees")}>💰 Fee Management</li>
+          <li onClick={() => navigate("/school-dashboard/fees")}> Fee Management</li>
         </ul>
 
         <button className="logout-btn" onClick={handleLogout}>Logout</button>

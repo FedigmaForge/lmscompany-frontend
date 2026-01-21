@@ -17,7 +17,7 @@ export default function StudentProfilePage() {
     console.log("StudentProfilePage: token from localStorage:", token);
 
     if (!token) {
-      console.warn("StudentProfilePage: No token found, redirecting to /student-login");
+      console.warn("StudentProfilePage: No token found, redirecting to /student-corner");
       navigate("/student-corner");
       return;
     }
@@ -26,22 +26,35 @@ export default function StudentProfilePage() {
       try {
         console.log("StudentProfilePage: Fetching profile from", `${API_BASE}/api/students/profile`);
         setLoading(true);
+
         const res = await axios.get(`${API_BASE}/api/students/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("StudentProfilePage: Profile response:", res.data);
 
         if (res.data && res.data.success) {
-          setProfile(res.data.data);
-          // Keep local cache consistent
-          localStorage.setItem("studentProfile", JSON.stringify(res.data.data));
+          const data = res.data.data;
+
+          //  Map backend fields to frontend expectations
+          const mappedProfile = {
+            ...data,
+            fullname: `${data.firstName} ${data.lastName}`,
+            admissionId: data.id,
+            standard: data.studentClass,
+            contactNumber: data.phone,
+            dateofbirth: data.dateOfBirth,
+            photo: data.profilePhoto,
+          };
+
+          setProfile(mappedProfile);
+          localStorage.setItem("studentProfile", JSON.stringify(mappedProfile));
         } else {
           setError(res.data.message || "Failed to load profile");
         }
       } catch (err) {
         console.error("StudentProfilePage fetch error:", err.response?.data || err.message || err);
         setError(err.response?.data?.message || "Server error while fetching profile");
-        // if auth error, redirect to login
+
         if (err.response?.status === 401) {
           console.warn("StudentProfilePage: Unauthorized — redirecting to login");
           localStorage.removeItem("studentToken");
@@ -85,15 +98,13 @@ export default function StudentProfilePage() {
 
   return (
     <div className="sp-page">
-  
-
       <main className="sp-main">
         <div className="sp-banner">
           <div className="sp-banner-overlay" />
           <div className="sp-banner-content">
             <img
               className="sp-banner-avatar"
-              src={profile.photo ? `${API_BASE}${profile.photo}` : "/default-avatar.png"}
+              src={profile.photo || "/default-avatar.png"}
               alt="Avatar"
             />
             <div>
@@ -101,7 +112,10 @@ export default function StudentProfilePage() {
               <p className="sp-meta">Admission: {profile.admissionId} • Class: {profile.standard} {profile.section}</p>
             </div>
             <div className="sp-actions">
-              <button onClick={() => { console.log("Edit Profile clicked"); navigate(`/student-edit/${profile.admissionId}`); }}>Edit Profile</button>
+              {/* <button onClick={() => {
+                console.log("Edit Profile clicked");
+                navigate(`/student-edit/${profile.admissionId}`);
+              }}>Edit Profile</button> */}
               <button onClick={handleLogout} className="sp-logout-inline">Logout</button>
             </div>
           </div>
@@ -112,7 +126,7 @@ export default function StudentProfilePage() {
           <div className="sp-grid">
             <div><strong>Full Name</strong><p>{profile.fullname}</p></div>
             <div><strong>Admission ID</strong><p>{profile.admissionId}</p></div>
-            <div><strong>Date of Birth</strong><p>{profile.dateofbirth || "N/A"}</p></div>
+            <div><strong>Date of Birth</strong><p>{profile.dateofbirth ? new Date(profile.dateofbirth).toLocaleDateString() : "N/A"}</p></div>
             <div><strong>Gender</strong><p>{profile.gender || "N/A"}</p></div>
             <div><strong>Contact</strong><p>{profile.contactNumber || "N/A"}</p></div>
             <div><strong>Address</strong><p>{profile.address || "N/A"}</p></div>
