@@ -1,101 +1,176 @@
-.teacher-management {
-  padding: 30px;
-  background-color: #f9fafb;
-  font-family: "Poppins", sans-serif;
+.tm-page {
+  padding: 20px;
+  background: #f5f6fa;
 }
 
-.teacher-management h2 {
-  color: #1e3a8a;
-  margin-bottom: 20px;
+/* HEADER */
+.tm-header {
+  background: linear-gradient(90deg, #6a6ff5, #8b5fbf);
+  color: white;
+  padding: 24px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.teacher-form {
+.tm-add-btn {
+  background: rgba(255,255,255,0.25);
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+}
+
+/* FILTERS */
+.tm-filters {
+  background: white;
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 14px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  grid-template-columns: 2fr 2fr 1fr auto;
+  gap: 12px;
 }
 
-.teacher-form input {
+.tm-filters input,
+.tm-filters select {
   padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.tm-filters .clear {
+  background: #f1f1f1;
+  border: none;
+  border-radius: 8px;
+}
+
+/* TABLE */
+.tm-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.tm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tm-table th,
+.tm-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.tm-table img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* ACTIONS */
+.view { background:#2196f3; }
+.edit { background:#4caf50; }
+.delete { background:#f44336; }
+
+.view,.edit,.delete {
+  color:white;
+  border:none;
+  padding:6px 10px;
+  border-radius:6px;
+  margin-right:4px;
+}
+
+/* MODAL */
+.tm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tm-modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  width: 500px;
+}
+
+.tm-form {
+  display: grid;
+  gap: 12px;
+}
+
+.tm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.tm-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.tm-form label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.tm-form input,
+.tm-form select,
+.tm-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  font-size: 14px;
   outline: none;
 }
 
-.teacher-form input:focus {
-  border-color: #2563eb;
+.tm-form input:focus,
+.tm-form textarea:focus,
+.tm-form select:focus {
+  border-color: #6a6ff5;
+  box-shadow: 0 0 0 2px rgba(106, 111, 245, 0.15);
 }
 
-.teacher-form button {
-  grid-column: 1 / -1;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s ease;
+.tm-form textarea {
+  resize: none;
+  min-height: 80px;
+  grid-column: span 2;
 }
 
-.teacher-form button:hover {
-  background-color: #1e3a8a;
+.tm-form .full {
+  grid-column: span 2;
 }
 
-/* Table */
-.teacher-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
+.tm-form-actions {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.tm-form-actions button {
+  padding: 10px 18px;
   border-radius: 10px;
-  overflow: hidden;
-}
-
-.teacher-table th,
-.teacher-table td {
-  border: 1px solid #e5e7eb;
-  padding: 10px;
-  text-align: center;
-}
-
-.teacher-table th {
-  background-color: #1e3a8a;
-  color: white;
-}
-
-.teacher-table tr:nth-child(even) {
-  background-color: #f3f4f6;
-}
-
-.edit-btn,
-.delete-btn {
   border: none;
-  padding: 6px 10px;
-  border-radius: 5px;
   cursor: pointer;
-  margin: 2px;
+  font-weight: 500;
 }
 
-.edit-btn {
-  background-color: #10b981;
+.tm-form-actions .save {
+  background: #6a6ff5;
   color: white;
 }
 
-.delete-btn {
-  background-color: #ef4444;
-  color: white;
-}
-
-
-.profile-upload {
-  margin-top: 10px;
-}
-
-.preview-img,
-.profile-img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-top: 5px;
+.tm-form-actions .cancel {
+  background: #eee;
 }

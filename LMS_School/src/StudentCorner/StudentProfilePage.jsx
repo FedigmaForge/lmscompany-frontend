@@ -72,7 +72,7 @@ export default function StudentProfilePage() {
     console.log("StudentProfilePage: Logging out");
     localStorage.removeItem("studentToken");
     localStorage.removeItem("studentProfile");
-    navigate("/student-corner");
+    navigate("/sign-in");
   };
 
   if (loading) {

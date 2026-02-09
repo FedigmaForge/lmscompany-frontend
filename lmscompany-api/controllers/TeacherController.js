@@ -13,7 +13,7 @@ const saveImage = (file) => {
   return `/uploads/${fileName}`;
 };
 
-// ✅ POST: Add Teacher
+//  POST: Add Teacher
 exports.addTeacher = async (req, res) => {
   try {
     const {
@@ -62,7 +62,7 @@ exports.addTeacher = async (req, res) => {
   }
 };
 
-// ✅ GET: Fetch Teachers
+//  GET: Fetch Teachers
 exports.getTeachers = async (req, res) => {
   try {
     const { school_code } = req.query;
@@ -85,7 +85,7 @@ exports.getTeachers = async (req, res) => {
   }
 };
 
-// ✅ PUT: Update Teacher
+// PUT: Update Teacher
 exports.updateTeacher = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,7 +132,7 @@ exports.updateTeacher = async (req, res) => {
   }
 };
 
-// ❌ DELETE: Remove Teacher
+//  DELETE: Remove Teacher
 exports.deleteTeacher = async (req, res) => {
   try {
     const { id } = req.params;
@@ -219,7 +219,7 @@ exports.teacherLogin = async (req, res) => {
 };
 
 
-// ✅ GET: Teacher Profile (Protected)
+//  GET: Teacher Profile (Protected)
 exports.getTeacherProfile = async (req, res) => {
   try {
     const teacherId = req.user.id; // from auth middleware

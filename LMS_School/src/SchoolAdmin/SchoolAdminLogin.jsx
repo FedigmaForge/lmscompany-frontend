@@ -36,98 +36,123 @@ const SchoolAdminLogin = () => {
   // ---------------------------
   // Login Submit
   // ---------------------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (!email || !password || !schoolCode) {
-      setError("Please fill all fields");
-      return;
+  if (!email || !password || !schoolCode) {
+    setError("Please fill all fields");
+    return;
+  }
+
+  try {
+    // =====================
+    //  STUDENT LOGIN
+    // =====================
+    if (role === "student") {
+      const res = await axios.post(`${API_BASE}/api/students/login`, {
+        email,
+        password,
+        schoolCode,
+      });
+
+      if (!res.data.success) {
+        setError(res.data.message || "Invalid credentials");
+        return;
+      }
+
+      localStorage.setItem("studentToken", res.data.token);
+      localStorage.setItem("studentEmail", email);
+      localStorage.setItem("schoolCode", schoolCode);
+
+      const profileRes = await axios.get(
+        `${API_BASE}/api/students/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${res.data.token}`,
+          },
+        }
+      );
+
+      if (profileRes.data.success) {
+        localStorage.setItem(
+          "studentProfile",
+          JSON.stringify(profileRes.data.data)
+        );
+      }
+
+      navigate("/student/dashboard");
     }
 
-    try {
-      // =====================
-      //  STUDENT LOGIN
-      // =====================
-      if (role === "student") {
-        const res = await axios.post(`${API_BASE}/api/students/login`, {
+    // =====================
+    //  ADMIN LOGIN
+    // =====================
+    if (role === "admin") {
+      const response = await axios.post(
+        `${API_BASE}/api/schools/login`,
+        {
+          email,
+          password,
+          school_code: schoolCode,
+        }
+      );
+
+      if (!response.data.success) {
+        setError(response.data.message || "Invalid credentials");
+        return;
+      }
+
+      localStorage.setItem("schoolToken", response.data.token);
+      localStorage.setItem("schoolCode", schoolCode);
+      localStorage.setItem(
+        "schoolName",
+        response.data.school.school_name
+      );
+      localStorage.setItem(
+        "schoolLogo",
+        response.data.school.school_logo
+      );
+
+      navigate("/school-dashboard");
+    }
+
+    // =====================
+    // ✅ TEACHER LOGIN
+    // =====================
+    if (role === "teacher") {
+      const res = await axios.post(
+        `${API_BASE}/api/teachers/login`,
+        {
           email,
           password,
           schoolCode,
-        });
-
-        if (!res.data.success) {
-          setError(res.data.message || "Invalid credentials");
-          return;
         }
+      );
 
-        localStorage.setItem("studentToken", res.data.token);
-        localStorage.setItem("studentEmail", email);
-        localStorage.setItem("schoolCode", schoolCode);
-
-        // Fetch student profile
-        const profileRes = await axios.get(
-          `${API_BASE}/api/students/profile`,
-          {
-            headers: {
-              Authorization: `Bearer ${res.data.token}`,
-            },
-          }
-        );
-
-        if (profileRes.data.success) {
-          localStorage.setItem(
-            "studentProfile",
-            JSON.stringify(profileRes.data.data)
-          );
-        }
-
-        navigate("/student/dashboard");
+      if (!res.data.success) {
+        setError(res.data.message || "Invalid credentials");
+        return;
       }
 
-      // =====================
-      //  ADMIN LOGIN
-      // =====================
-      if (role === "admin") {
-        const response = await axios.post(
-          `${API_BASE}/api/schools/login`,
-          {
-            email,
-            password,
-            school_code: schoolCode,
-          }
-        );
+      localStorage.setItem("teacherToken", res.data.token);
+      localStorage.setItem("teacherEmail", res.data.data.email);
+      localStorage.setItem("teacherId", res.data.data.id);
+      localStorage.setItem("employeeId", res.data.data.employeeid);
+      localStorage.setItem("schoolCode", res.data.data.schoolCode);
+      localStorage.setItem(
+        "teacherProfile",
+        JSON.stringify(res.data.data)
+      );
 
-        if (!response.data.success) {
-          setError(response.data.message || "Invalid credentials");
-          return;
-        }
-
-        localStorage.setItem("schoolToken", response.data.token);
-        localStorage.setItem("schoolCode", schoolCode);
-        localStorage.setItem(
-          "schoolName",
-          response.data.school.school_name
-        );
-        localStorage.setItem(
-          "schoolLogo",
-          response.data.school.school_logo
-        );
-
-        navigate("/school-dashboard");
-      }
-
-      // =====================
-      // 🚧 TEACHER (future)
-      // =====================
-      if (role === "teacher") {
-        alert("Teacher login API not connected yet");
-      }
-    } catch (err) {
-      console.error(" Login Error:", err);
-      setError(err.response?.data?.message || "Login failed. Try again.");
+      navigate("/teacher");
     }
-  };
+
+  } catch (err) {
+    console.error("Login Error:", err);
+    setError(err.response?.data?.message || "Login failed. Try again.");
+  }
+};
+
 
   return (
     <div className="login-wrapper">

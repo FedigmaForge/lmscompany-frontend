@@ -6,10 +6,10 @@ import WhyChooseUs from "./components/WhyChooseUs";
 import CallToAction from "./components/CallToAction";
 import Footer from "./components/Footer";
 import Courses from "./components/Courses";
-import StudentCorner from "./StudentCorner/StudentCorner";
+
 import ContactUs from "./components/ContactUs";
 import SignIn from "./SchoolAdmin/SchoolAdminLogin";
-import TeacherLogin from "./SchoolTeacher/TeacherLogin";
+
 import SchoolDashboard from "./SchoolAdmin/SchoolDashboard";
 import TeacherManagement from "./SchoolAdmin/TeacherManagement";
 import StudentManagement from "./SchoolAdmin/StudentManagement";
@@ -67,10 +67,10 @@ function App() {
         />
 
         <Route path="/courses" element={<Courses />} />
-        <Route path="/student-corner" element={<StudentCorner />} />
+        
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/TeacherLogin" element={<TeacherLogin />} />
+       
 
         {/*  Student Dashboard */}
         <Route path="/student/dashboard" element={<StudentDashboard />}>

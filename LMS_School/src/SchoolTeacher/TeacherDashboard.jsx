@@ -43,7 +43,7 @@ export default function TeacherDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("teacherToken");
     localStorage.removeItem("teacherData");
-    navigate("/");
+    navigate("/sign-in");
   };
 
   return (

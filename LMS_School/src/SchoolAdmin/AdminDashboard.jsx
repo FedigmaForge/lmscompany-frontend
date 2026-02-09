@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./AdminDashboard.css";
+import axios from "axios";
 import {
   LayoutGrid,
   LogOut,
@@ -10,12 +11,61 @@ import {
   ClipboardList,
   CalendarDays,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("schoolToken");
+  const schoolCode = localStorage.getItem("schoolCode");
+
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  /* ================= AUTH CHECK ================= */
+  useEffect(() => {
+    if (!token) {
+      navigate("/sign-in");
+    }
+  }, [token, navigate]);
+
+  /* ================= FETCH STUDENTS (SAME AS StudentManagement) ================= */
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/api/students`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            schoolCode: schoolCode,
+          },
+        });
+
+        setStudents(res.data.data || []);
+      } catch (err) {
+        console.error("Fetch students error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token && schoolCode) {
+      fetchStudents();
+    }
+  }, [token, schoolCode]);
+
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/sign-in");
+  };
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
+      {/* ================= HEADER ================= */}
       <div className="dashboard-header">
         <div className="header-left">
           <div className="icon-circle">
@@ -26,34 +76,39 @@ export default function AdminDashboard() {
             <p>Welcome back, admin!</p>
           </div>
         </div>
-        <button className="logout-btn">
+
+        <button className="logout-btn" onClick={handleLogout}>
           <LogOut size={18} /> Logout
         </button>
       </div>
 
-      {/* Quick Overview */}
+      {/* ================= QUICK OVERVIEW ================= */}
       <h2 className="section-title">Quick Overview</h2>
 
       <div className="cards-grid">
         <Link to="/school-dashboard/student" className="card-link">
-          <StatCard title="Total Students" value="245" type="blue" />
+          <StatCard
+            title="Total Students"
+            value={loading ? "..." : students.length}
+            type="blue"
+          />
         </Link>
+
         <StatCard title="Active Classes" value="12" type="green" />
         <StatCard title="Pending Tasks" value="8" type="orange" />
         <StatCard title="Notifications" value="23" type="pink" />
       </div>
 
-      {/* Management Sections */}
+      {/* ================= MANAGEMENT SECTIONS ================= */}
       <h2 className="section-title">Management Sections</h2>
 
       <div className="management-grid">
-
         <Link to="/school-dashboard/attendance" style={{ textDecoration: "none" }}>
           <ManageCard
             icon={<CheckCircle size={26} />}
             title="Mark Attendance"
             desc="Track and manage student attendance"
-            count="45"
+            count={students.length}
             color="green"
           />
         </Link>
@@ -107,14 +162,12 @@ export default function AdminDashboard() {
             color="blue"
           />
         </Link>
-
       </div>
-
     </div>
   );
 }
 
-/* ---------- Components ---------- */
+/* ================= COMPONENTS ================= */
 
 function StatCard({ title, value, type }) {
   return (
